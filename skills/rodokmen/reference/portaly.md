@@ -73,6 +73,10 @@ Adresy u nevyzkoušených portálů ověř při prvním použití (portály se m
   požadavkem (IIIF), `nahled` = 1/4. Číslo snímku = pořadí náhledu v prohlížeči; soubory nesou číslo folia
   (`dolni-bela-17_0951` = fol. 95), takže u knih se souvislou foliací je **snímek ≈ folio**.
 - `link <kniha> <snímek>` → trvalý odkaz, `svazek <kniha>` → `svazky.json` (klíč `pf_<kniha>`).
+- Zaniklé obce (Slavkovský les, Doupovsko, pohraničí): stejné jméno má často víc vsí (Schönlind = Krásná Lípa u Kraslic
+  i zaniklá Krásná Lípa u Sokolova). Rozhodne sousední obec z rodinných údajů a fara: např. Schönlind ve Slavkovském lese
+  → fara Kostelní Bříza (`kostelni-briza`), Perlsberg/Lazy a Rockendorf/Žitná → fara Smrkovec (`smrkovec`). Svatby hledej
+  i ve faře nevěsty (sousední fara), oddací rejstříky jsou v knihách `…ooi`.
 - Bez prohlížečového User-Agentu portál vrací 403 (nástroj ho posílá). Jmenné hledání portál nemá – indexy jsou jen uvnitř knih
   (`*i`, `ooi`, `+i` v seznamu knih fary).
 
@@ -128,6 +132,11 @@ Adresy u nevyzkoušených portálů ověř při prvním použití (portály se m
   přes `python3 -I tools/slusne.py curl …` (Python dostane HTTP 426). MZA blokuje IP adresu už po desítkách
   rychlých dotazů nebo stovkách snímků za večer – jen konkrétní snímky, žádné předběžné stahování celých knih.
   Dál podle „Ostatní portály“ níže.
+- Když stažení selže a portál umožňuje běžné zobrazení, čti přímo v prohlížeči: prohlížeč na celou obrazovku (tlačítko vpravo), lupa + dvakrát, pak
+  kolečko myši nad místem zápisu (zvětšuje kolem kurzoru); velké tažení viewer resetuje, malé posuny fungují. Pole „Snímek“
+  skáče přímo. **Rejstříky** (oddaní ~1890–1949) bývají na konci knihy a uvádějí stránku – stránka ≠ snímek, dohledej
+  podle hlaviček. Sňatek bývá ve farnosti nevěsty. Výřez do dat = snímek obrazovky (odkaz na snímek knihy do `odkaz`).
+  Čtení jednoho zápisu je ~10 kroků – MZA nečti pomocníky souběžně (jeden prohlížeč).
 - Poznámky o DZI/JSON a lokálním browser bridge jsou pouze výzkumný nápad, ne ověřené stabilní rozhraní.
   Neimplementuj na jejich základě downloader, bridge ani automatizaci; před případnou změnou ověř oficiální rozhraní.
 

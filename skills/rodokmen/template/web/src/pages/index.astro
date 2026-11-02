@@ -43,6 +43,7 @@ const defaultStoryButton = config.maVicePribehu ? 'Prohlédnout příběhy' : 'P
     <div><strong>{stats.generations}</strong>generací</div>
     <div><strong>{stats.records}</strong>matričních zápisů</div>
   </div>
+  {stats.updated && <p class="updated">Poslední export webu: {stats.updated}</p>}
 
   {cards.length > 0 && (
     <>
