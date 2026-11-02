@@ -95,6 +95,8 @@ Mladší knihy jsou na matričním úřadě obce s rozšířenou působností / 
   matky (dítě se často narodilo u jejích rodičů).
 - Nevěsta mívala 18–28, ženich 22–32; děti po 1,5–3 letech.
 - „Vdovec“ u ženicha = hledej první manželství a děti z něj.
+- Při přepisu křtu ověř měsíc podle záhlaví příslušného sloupce a nepopleť číslo domu porodní báby
+  (*obstetrix*, *Hebamme*) s rodištěm dítěte.
 
 ## Stavy údajů v datech
 | stav | kdy |
