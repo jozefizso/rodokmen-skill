@@ -7,9 +7,12 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 
+import cache
+import trebon
 from trebon import _compose_tiles, _print_rejstrik, magick
 
 
@@ -44,6 +47,36 @@ class ComposeTilesTests(unittest.TestCase):
                 text=True,
             )
             self.assertEqual(result.stdout, "7x5")
+
+    def test_downloaded_tiles_are_cached_and_reused(self):
+        command = magick()
+        with tempfile.TemporaryDirectory() as tmp:
+            tile = subprocess.run(
+                [command, "-size", "5x3", "xc:red", "jpg:-"],
+                check=True, capture_output=True,
+            ).stdout
+
+            def get(path, referer=None, binary=False):
+                if "view.php" in path:
+                    return 'showImage("image","token"', path
+                if "isrv8.cgi" in path:
+                    return (tile if path.endswith(".0.1-0-0") else b""), path
+                return "", path
+
+            first = os.path.join(tmp, "first.jpg")
+            second = os.path.join(tmp, "second.jpg")
+            with patch.object(cache, "KOREN", os.path.join(tmp, "cache")), \
+                 patch.object(trebon, "get", side_effect=get) as request:
+                with redirect_stdout(StringIO()):
+                    trebon.snimek("123", "1", first)
+                self.assertGreater(request.call_count, 0)
+                request.reset_mock()
+                with redirect_stdout(StringIO()) as output:
+                    trebon.snimek("123", "1", second)
+                request.assert_not_called()
+                self.assertIn("z cache", output.getvalue())
+                self.assertEqual(Path(first).read_bytes(), Path(second).read_bytes())
+                self.assertIn("5x3", output.getvalue())
 
 
 class RejstrikOutputTests(unittest.TestCase):
