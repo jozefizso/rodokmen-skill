@@ -6,7 +6,7 @@ const { title, description = config.popis || siteName, wide = false, wider = fal
 const path = Astro.url.pathname;
 const groups = [
   [['/', 'Úvod'], ...(config.maPribeh ? [['/pribehy/', config.pribeh?.menu || 'Příběh rodu']] : []), ['/zajimavosti/', 'Zajímavosti']],
-  [['/rody/', 'Rody'], ['/mapa/', 'Mapa'], ['/vejir/', 'Vějíř'], ['/predci/', 'Předci'], ['/zapisy/', 'Zápisy'], ['/hledame/', 'Co hledáme']],
+  [['/rody/', 'Rody'], ['/mapa/', 'Mapa'], ['/vejir/', 'Vějíř'], ['/strom/', 'Strom'], ['/predci/', 'Předci'], ['/zapisy/', 'Zápisy'], ['/hledame/', 'Co hledáme']],
   [['/hledat/', 'Hledat']],
 ];
 const current = (url) => ((url === '/' ? path === '/' : path.startsWith(url)) ? 'page' : undefined);
@@ -44,7 +44,7 @@ const current = (url) => ((url === '/' ? path === '/' : path.startsWith(url)) ? 
       <slot />
     </main>
     {!full && <footer class="site-footer">
-      {config.zapati || 'Dohledáno v digitalizovaných matrikách'} · rodinný web, neveřejný{stats?.updated && <> · aktualizováno {stats.updated}</>}
+      {config.zapati || 'Dohledáno v digitalizovaných matrikách'} · rodinný web, neveřejný{stats?.updated && <> · export webu {stats.updated}</>}
     </footer>}
   </body>
 </html>
