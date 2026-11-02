@@ -9,7 +9,9 @@ znalost rodiny a rozhodujete.
 
 Vznikl při skutečném hledání předků jedné rodiny.
 
-**Aktuální verze: 0.6.0 (říjen 2026).** Skill se průběžně vyvíjí – opravuji chyby a doplňuji postupy pro další archivy
+**Autor a správce:** Jindřich Šaršon ([sarsonj@gmail.com](mailto:sarsonj@gmail.com), [GitHub](https://github.com/sarsonj))
+
+**Aktuální verze: 0.6.0 (listopad 2026).** Skill se průběžně vyvíjí – opravuji chyby a doplňuji postupy pro další archivy
 podle toho, na co narazíte vy. Jak aktualizovat, najdete v části [Instalace](#instalace), seznam změn
 v [historii repozitáře](https://github.com/sarsonj/rodokmen-skill/commits/main).
 
@@ -47,9 +49,8 @@ s přepisem a překladem, „Co hledáme“ a deník hledání. **[Podívejte se
 ## Co budete potřebovat
 - **Claude Code** (aplikace pro Mac/Windows nebo příkazová řádka) a placené předplatné Claude, nebo
   **Codex** (OpenAI), nebo **[OMP (Oh My Pi)](https://github.com/can1357/oh-my-pi)** se stejně silným modelem. Rodokmen je
-  dlouhá práce – počítejte s několika večery a s tím, že spotřebuje dost kreditů. Nejlevnější tarif **Pro bude
-  nejspíš málo** (stačí na vyzkoušení), na celý rodokmen počítejte aspoň s nejnižším tarifem **Max**.
-  Po dokončení můžete předplatné zase snížit nebo zrušit, web i data vám zůstanou.
+  dlouhá práce – počítejte s několika večery a spotřebou kreditů podle zvoleného nástroje a modelu.
+  Web i data zůstanou ve vašem projektu.
 - **Počítač s macOS nebo Windows** (obojí vyzkoušeno; Windows 11 s Pythonem z python.org a Git Bashem).
   Linux by měl fungovat, ale vyzkoušený není.
 - Programy **Python 3, Node.js, ImageMagick a git**. Nemusíte je instalovat předem – Claude zkontroluje, co chybí,
@@ -60,7 +61,7 @@ s přepisem a překladem, „Co hledáme“ a deník hledání. **[Podívejte se
 AI se vyvíjí rychle a za pár měsíců může skill dávat lepší, nebo jen jiné výsledky. Proto je tu uvedeno, s čím byl
 vyzkoušený.
 
-- **Stav k říjnu 2026 (verze 0.6.0):** Claude Code s hlavním modelem **Claude Opus 5.5**. Pomocníci, kteří hledají
+- **Stav k listopadu 2026 (verze 0.6.0):** Claude Code s hlavním modelem **Claude Opus 5.5**. Pomocníci, kteří hledají
   a čtou matriky jako první, běží na **Claude Sonnet 5.5**. Každý jejich nález pak hlavní model ověřuje na snímku.
 - Vyzkoušeno na několika skutečných rodokmenech (největší má 243 předků v 11 generacích a 192 matričních zápisů).
   Výsledek se porovnával s větví, kterou jsme léta dělali ručně.
@@ -74,38 +75,44 @@ nevznikl a jeho čtení nikdo nesrovnal s ručním přepisem.
 ### Varianta A – jako plugin v Claude Code (doporučeno)
 V Claude Code napište:
 ```
-/plugin marketplace add sarsonj/rodokmen-skill
+/plugin marketplace add jozefizso/rodokmen-skill
 /plugin install rodokmen@rodokmen-skill
 ```
 Pak Claude Code restartujte (do běžící relace se nový plugin nenačte).
-Aktualizace později: `/plugin marketplace update rodokmen-skill`. Rozpracovaný projekt pak Claude při další práci
-sám nabídne aktualizovat na novou verzi (vaše data zůstanou, změněné soubory webu zazálohuje do `pracovni/`).
+**Aktualizace.** Claude Code u pluginů od jiných autorů než Anthropic nové verze sám nehlídá. Máte dvě možnosti:
+- **Automaticky (doporučuji):** jednou v `/plugin` na kartě **Marketplaces** vyberte `rodokmen-skill` a zapněte
+  automatické aktualizace (Enable auto-update). Nová verze se pak stáhne při spuštění Claude Code.
+- **Ručně:** v terminálu (nebo v Claude Code s `!` na začátku)
+  ```
+  claude plugin marketplace update rodokmen-skill
+  claude plugin update rodokmen@rodokmen-skill
+  ```
+  O nových verzích se dozvíte přes **Watch → Custom → Releases** na GitHubu.
+
+Po aktualizaci Claude Code restartujte. Rozpracovaný projekt pak Claude při další práci sám nabídne aktualizovat
+na novou verzi (vaše data zůstanou, změněné soubory webu zazálohuje do `pracovni/`).
 
 ### Varianta B – jako plugin v Codexu
 V terminálu:
 ```
-codex plugin marketplace add sarsonj/rodokmen-skill
+codex plugin marketplace add jozefizso/rodokmen-skill
 codex plugin add rodokmen@rodokmen-skill
 ```
 Aktualizace později: `codex plugin marketplace upgrade rodokmen-skill` (kdyby `codex plugin list` ukazoval starou verzi,
 pak ještě `codex plugin add rodokmen@rodokmen-skill`). Rozpracovaný projekt pak agent sám nabídne aktualizovat,
 stejně jako v Claude Code.
 
-Codex má ve výchozím stavu vypnutý přístup k síti a skill stahuje snímky z archivů – bez povolení budete schvalovat
-každé stažení. Síť povolíte jen pro složku projektu: vytvořte v ní soubor `.codex/config.toml` s obsahem
-```toml
-[sandbox_workspace_write]
-network_access = true
-```
-a při spuštění Codexu ve složce potvrďte, že jí důvěřujete. Agent vás o to může požádat sám, ale nespoléhejte na to.
+Přístup k síti a schvalování závisí na nastavení Codexu a prostředí. Pokud nástroje nedosáhnou na archiv,
+zkontrolujte oprávnění a [nastavení sandboxu](https://developers.openai.com/codex/config-reference).
+Změnu přístupu k síti provádějte jen tehdy, když ji pro svůj projekt chcete povolit.
 
 ### Varianta C – jako plugin v OMP
 V terminálu:
 ```
-omp plugin marketplace add sarsonj/rodokmen-skill
+omp plugin marketplace add jozefizso/rodokmen-skill
 omp plugin install rodokmen@rodokmen-skill
 ```
-(nebo uvnitř OMP `/marketplace add sarsonj/rodokmen-skill`, `/marketplace install rodokmen@rodokmen-skill`
+(nebo uvnitř OMP `/marketplace add jozefizso/rodokmen-skill`, `/marketplace install rodokmen@rodokmen-skill`
 a pak `/reload-plugins`).
 Aktualizace později: `omp plugin marketplace update rodokmen-skill && omp plugin upgrade rodokmen@rodokmen-skill`.
 Rozpracovaný projekt pak agent sám nabídne aktualizovat, stejně jako v Claude Code.
@@ -119,16 +126,20 @@ Stáhněte repozitář (zelené tlačítko **Code → Download ZIP** na GitHubu,
 
 Pak Claude Code (nebo Codex, OMP) restartujte.
 
+V **Cursoru** složku `skills/rodokmen` zkopírujte do `~/.cursor/skills/rodokmen/` (na Windows `C:\Users\<jméno>\.cursor\skills\rodokmen\`).
+Přes Customize → From GitHub Repository to nejde: ten postup chce `.cursor-plugin/marketplace.json` a tento repozitář má manifest pro Claude Code.
+Podrobnosti jsou v `skills/rodokmen/reference/cursor.md`.
+
 ## První spuštění
-1. Spusťte Claude Code (klidně v domovské složce) a napište třeba:
+1. Spusťte Claude Code, Codex, Cursor nebo OMP a napište třeba:
    > Chci udělat rodokmen své rodiny.
 
    nebo přímo `/rodokmen` (v Codexu napište `$` a vyberte rodokmen ze seznamu, v OMP `/skill:rodokmen`).
-2. Claude zkontroluje programy, založí složku projektu (např. `~/Rodokmen`) a začne se ptát na rodinu.
+2. Agent zkontroluje programy, založí složku projektu (např. `~/Rodokmen`) a začne se ptát na rodinu.
    Připravte si, co víte o rodičích, prarodičích a pradědečcích, a rodinné dokumenty (rodné a oddací listy, parte,
    fotky, kroniky) – stačí vyfotit mobilem.
 3. **Příště otevírejte Claude Code přímo ve složce projektu** (`cd ~/Rodokmen && claude`, nebo v aplikaci
-   vyberte tuto složku; v Codexu `cd ~/Rodokmen && codex`, v OMP `cd ~/Rodokmen && omp`). Claude si přečte, kde jste skončili, a naváže.
+   vyberte tuto složku; v Codexu `cd ~/Rodokmen && codex`, v OMP `cd ~/Rodokmen && omp`). Agent si přečte, kde jste skončili, a naváže.
 
 Chcete nejdřív vidět, jak web vypadá? Řekněte: *„Ukaž mi ukázkový web.“* Claude založí ukázkový projekt
 s vymyšlenou rodinou a spustí náhled.
@@ -203,11 +214,18 @@ když budete chtít, zkopírujte je do e-mailu.
 Skill je obyčejný text (návod pro Clauda) a pár skriptů v Pythonu. Všechno si můžete před instalací prohlédnout
 tady v repozitáři.
 - **Žádný automaticky spouštěný kód.** Plugin nemá hooky ani MCP servery. Skripty spouští jen Claude, když je
-  při práci potřebuje, a Claude Code se vás na ně zeptá. Codex je pouští v sandboxu (zápis jen do složky projektu),
-  OMP se ve výchozím nastavení neptá – viz doporučení níže.
+  při práci potřebuje, a Claude Code se vás na ně zeptá.
+  Jediná výjimka je volitelný **hlídač sítě**. Claude se na něj zeptá při zakládání projektu a bez vašeho souhlasu
+  se nezapne. Je to malý skript v projektu (`tools/hlidac_site.py`, hook v `.claude/settings.json` projektu). Před
+  každým příkazem zkontroluje, jestli nejde na web archivu mimo brzdu, a takový příkaz zamítne. Sám nic nestahuje
+  ani nikam neposílá. Vypnete ho příkazem `novy_projekt.py <projekt> --bez-hlidace`.
+- **Brzda proti zablokování archivem.** Archivy blokují IP adresu po sérii rychlých dotazů. Nástroje proto mají
+  společný limit pro každý web (`tools/slusne.py`) a po varování archivu se na 30 minut zastaví. Projekt má
+  v `.claude/settings.json` zakázané přímé `curl` a `wget`, stahuje se jen přes brzdu.
 - **Kam skripty sahají:** zapisují do složky projektu rodokmenu (stažené snímky, mezivýsledky, web).
-  Výjimkou jsou dočasné soubory systému, npm při instalaci webu a přihlášení nástroje pro nasazení (Netlify,
-  CapRover), pokud web zveřejňujete. Mimo projekt nic nemažou ani nepřepisují.
+  Výjimkou jsou dočasné soubory systému, stav brzdy (pár malých souborů v `~/.cache/rodokmen_slusne`, na Windows
+  v `%LOCALAPPDATA%`), npm při instalaci webu a přihlášení nástroje pro nasazení (Netlify, CapRover), pokud web
+  zveřejňujete. Mimo projekt nic nemažou ani nepřepisují.
 - **Na které servery chodí:** archivní portály (ARON SOA Zámrsk, SOA Třeboň, SOA Plzeň – Porta fontium, SOA Praha –
   eBadatelna, AHMP, Národní archiv, SOA Litoměřice, Matricula), noviny (ANNO, Kramerius), OpenStreetMap (mapa
   a souřadnice obcí) a při instalaci webu registr npm.
@@ -218,6 +236,6 @@ tady v repozitáři.
   jeho návodem řídí.
 
 ## Licence
-Skill je pod licencí [MIT](LICENSE): smíte ho volně používat, upravovat a šířit dál, jen zachovejte uvedení autora.
+Skill je pod licencí [MIT](LICENSE): smíte ho volně používat, upravovat a šířit dál, jen zachovejte uvedení autora (Jindřich Šaršon).
 Výjimkou je metodická příručka `skills/rodokmen/reference/playbook.md`. Je to převzatá rešeršní zpráva bez uvedeného
 autora, licence MIT se na ni nevztahuje (podrobnosti na začátku souboru).

@@ -19,6 +19,28 @@ def jload(name, default):
     return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else default
 
 
+def research_log_stats(path):
+    """Count numbered research-log rows and return duplicate identifiers."""
+    identifier_re = re.compile(r"^\|\s*(\d+|[A-Za-z][A-Za-z0-9]*-\d+)\s*\|")
+    seen, duplicates = {}, set()
+    rows = 0
+    if not os.path.exists(path):
+        return rows, []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            match = identifier_re.match(line)
+            if not match:
+                continue
+            rows += 1
+            identifier = match.group(1)
+            normalized = identifier.casefold()
+            if normalized in seen:
+                duplicates.add(seen[normalized])
+            else:
+                seen[normalized] = identifier
+    return rows, sorted(duplicates, key=str.casefold)
+
+
 def main():
     err, warn = [], []
     ns = {}
@@ -64,7 +86,8 @@ def main():
         if k not in range(8, 16):
             err.append(f"LINES: rod {k} – rody mají čísla 8 až 15 (pradědečci a prababičky)")
 
-    cited = {r for p in P.values() for r in p.get("r", [])} | {r for s in SIDE for r in s.get("r", [])}
+    cited = ({r for p in P.values() for r in p.get("r", [])} | {r for s in SIDE for r in s.get("r", [])}
+             | {r for h in ns.get("HYPOTEZY", []) if isinstance(h, dict) for r in h.get("zaznamy", [])})
     for z in zaz:
         k = z.get("klic", "?")
         for f in ("klic", "druh", "datum", "nazev", "shrnuti"):
@@ -94,10 +117,9 @@ def main():
             err.append(f"místo {name}: špatný výraz '{e.get('re')}': {ex}")
 
     cfg = jload("web.json", {})
-    if not (cfg.get("prihlaseni") or {}).get("odpoved") and not (cfg.get("prihlaseni") or {}).get("otevreny"):
-        warn.append("web.json: není nastavená odpověď na přihlašovací otázku – nasazení webu skončí chybou")
-
-    if re.search(r"Novák|Petrovi", json.dumps(cfg, ensure_ascii=False)) and "Novák" not in P.get(1, {}).get("n", ""):
+    # Chybějící přihlašovací otázku nehlásit pořád – ohlídá ji až nasazení (export_web.py --nasazeni).
+    ukazka = ("Rodokmen Novákových", "(ukázka", "vymyšlená rodina", "kovárnu v Holicích čp. 112")
+    if any(u in json.dumps(cfg, ensure_ascii=False) for u in ukazka) and "Novák" not in P.get(1, {}).get("n", ""):
         warn.append("web.json: jsou v něm ještě ukázkové texty (Novákovi) – nastav název, příběh a kontakt")
 
     # Citlivé věci, které jdou na web: ISSUES („Co hledáme“), poznámky a fakta osob, boční příbuzní, texty.
@@ -145,7 +167,9 @@ def main():
                         f"(data/pribeh.md, reference/pribehy.md); koncept nejdřív ukaž uživateli v chatu")
 
     log = os.path.join(DATA, "research_log.md")
-    rows = sum(1 for l in open(log, encoding="utf-8") if re.match(r"^\| \d+ \|", l)) if os.path.exists(log) else 0
+    rows, duplicate_ids = research_log_stats(log)
+    if duplicate_ids:
+        err.append(f"deník obsahuje duplicitní identifikátory: {', '.join(duplicate_ids)}")
     print(f"{len(P)} osob, {len(zaz)} zápisů, {len(svazky)} svazků, {rows} řádků deníku")
     for e in err:
         print("CHYBA:", e)
