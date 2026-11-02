@@ -1,6 +1,8 @@
 # Rodinný web – stavba, nastavení, zveřejnění
 
 Web je statický (Astro + vyhledávání Pagefind), data bere z `data/` přes `tools/export_web.py`.
+Šablona používá Astro 7.3.8; podle `package-lock.json` vyžaduje Astro Node.js `>=22.12.0` a tranzitivní `undici`
+8.11.2 `>=22.19.0`. Používej proto Node.js `>=22.19.0` při čisté instalaci i sestavení webu.
 Stránky: úvod (lákadlo, statistiky, zajímavosti, mapa, rody, vějíř), příběh, zajímavosti, rody, stránka rodu,
 mapa (OpenStreetMap), vějíř přes celou obrazovku s hledáním, seznam předků, zápisy (s výřezem, rámečkem, přepisem
 a překladem), stránka osoby, rodiny, „Co hledáme“, výzkumný deník, hledání.
@@ -8,14 +10,22 @@ a překladem), stránka osoby, rodiny, „Co hledáme“, výzkumný deník, hle
 ## Příkazy (ve složce `web/`)
 | příkaz | co dělá |
 |---|---|
-| `npm install` | jednou na začátku (stáhne knihovny, ~1 minuta) |
+| `npm ci` | čistá instalace přesně podle `package-lock.json` |
 | `npm run data` | převede data do webu (vždy po změně dat; funkční Python 3 vyhledá `scripts/data.mjs`) |
 | `npm run build` | sestaví web do `dist/` |
 | `npm run nahled` | data + build + náhled na http://localhost:4321 (Ctrl+C ukončí) |
 | `npm run dev` | vývojový režim při úpravách vzhledu |
 | `npm run nasadit` | data + build + nahrání na Netlify |
 
-Náhled spouštěj na pozadí a uživateli pošli odkaz. Vzhled si ověř sám (snímek obrazovky přes prohlížeč, je-li k dispozici).
+Náhled spouštěj na pozadí a uživateli pošli odkaz.
+
+**Web ve vnitřní síti (domácí počítač, bez nasazení na internet):** stačí servírovat hotové `dist/`, např.
+`python3 -I -m http.server 4321 --bind 0.0.0.0 --directory dist` (ve `web/`). Aby běžel i po restartu (Linux),
+uživatelská služba systemd `~/.config/systemd/user/rodokmen-web.service` s tímto `ExecStart`, `WorkingDirectory=%h/<projekt>/web`,
+`Restart=on-failure`, `WantedBy=default.target` → `systemctl --user enable --now rodokmen-web`; bez přihlášení po restartu
+ještě jednou `sudo loginctl enable-linger <uživatel>` (pustí uživatel). Po změně dat jen `npm run data && npm run build` –
+server obnovu pozná sám. Úvod i patička ukazují „Poslední aktualizace“, ať rodina vidí, že se web obnovuje.
+Pozor: takový web nemá přihlášení – je vidět z celé domácí sítě. Vzhled si ověř sám (snímek obrazovky přes prohlížeč, je-li k dispozici).
 
 ## `data/web.json`
 ```json
@@ -27,6 +37,7 @@ Náhled spouštěj na pozadí a uživateli pošli odkaz. Vzhled si ověř sám (
  "prihlaseni": {"uvod": "Tenhle web je jen pro rodinu.", "otazka": "Jak se jmenoval pes u babičky v Holicích?", "odpoved": "Alík"},
  "uvod": {"nadpis": "Lákavý nadpis", "odstavce": ["2–3 věty, které chytí"], "foto": "klic_obrazku_ve_vyrezech", "foto_popis": "…"},
  "pribeh": {"menu": "Příběh Nováků", "rod": 8, "tlacitko": "Přečíst příběh Nováků"},
+ "pribehy": [],
  "zajimavosti_na_uvodu": [{"nadpis": "Nejstarší předek", "text": "Kovář Jan, asi 1825."}]
 }
 ```
@@ -40,6 +51,9 @@ Náhled spouštěj na pozadí a uživateli pošli odkaz. Vzhled si ověř sám (
 - `uvod.foto` = klíč obrázku ve `vyrezy/` (ulož přes `vyrez.py`).
 - `pribeh`: `menu` a `tlacitko` pojmenuj podle hlavního rodu („Příběh Novákových“), `rod` = číslo rodu (8–15).
   Bez vyplněného `uvod` ukáže úvodní stránka aspoň název a `lead` příběhu. Viz `pribehy.md`.
+- `pribehy`: volitelný seznam slugů souborů z `data/pribehy/`, který určuje pořadí příběhů v rozcestníku.
+  Prázdný seznam použije všechny soubory v abecedním pořadí; vyplněný seznam musí každý slug obsahovat právě jednou.
+  Frontmatter (`title`, `lead`, číselné `rod`) a stránka každého příběhu jsou popsány v `reference/pribehy.md`.
 - Šablona `web.json` je prázdná – název nastav hned, jak znáš příjmení výchozí osoby (`kontrola.py` hlásí zbytky ukázky).
 - `puvodni_jmena`: `true` = jména osob na webu a ve vějíři v původních tvarech ze zápisů (pole `zap` v `osoby.py`,
   „Catharina Nowakin / Kateřina Nováková“). Výchozí je dnešní spisovná podoba; původní tvar je pak jen řádkem na stránce osoby.
@@ -58,14 +72,16 @@ Náhled spouštěj na pozadí a uživateli pošli odkaz. Vzhled si ověř sám (
 
 ## Zveřejnění na Netlify (výchozí, zdarma)
 1. Uživatel si založí účet na netlify.com (stačí přihlášení přes Google/GitHub) – udělá sám.
-2. Přihlášení CLI (otevře prohlížeč) – dej uživateli: `! cd web && npx -y netlify-cli@latest login`.
-   Když `!` nejde (cloudové prostředí): `npx -y netlify-cli@latest login --request "Rodokmen"` vypíše odkaz a číslo
+2. Přihlášení CLI (otevře prohlížeč) – dej uživateli. V Claude Code s předponou `!`: `! cd web && npx -y netlify-cli@latest login`.
+   Kde `!` není (Cursor), dej mu do chatu blok ke zkopírování `cd web && npx -y netlify-cli@latest login` a počkej, až ho spustí sám.
+   Když `!` nejde (cloudové prostředí, nebo ho agent nemá): `npx -y netlify-cli@latest login --request "Rodokmen"` vypíše odkaz a číslo
    lístku – uživatel odkaz otevře a schválí, pak `npx -y netlify-cli@latest login --check <lístek>`.
-3. Založení webu a propojení složky (interaktivní, jednou) – dej uživateli:
-   `! cd web && npx -y netlify-cli@latest sites:create` (zvolí tým a název → adresa `https://<název>.netlify.app`),
+3. Založení webu a propojení složky (interaktivní, jednou) – dej uživateli stejně:
+   v Claude Code `! cd web && npx -y netlify-cli@latest sites:create`, jinde blok `cd web && npx -y netlify-cli@latest sites:create`
+   (zvolí tým a název → adresa `https://<název>.netlify.app`),
    případně `npx netlify-cli link`, pokud web už existuje. Je-li uživatel už přihlášený, jde web založit i bez dotazů
    (můžeš spustit sám): `cd web && npx -y netlify-cli@latest sites:create --name <název> --account-slug <tým>`.
-   **Windows:** když `!` běží ve Windows PowerShellu 5.1 (`&&` tam nefunguje a `npx` blokuje Execution Policy), ať uživatel
+   **Windows:** když `!` nebo vložený příkaz běží ve Windows PowerShellu 5.1 (`&&` tam nefunguje a `npx` blokuje Execution Policy), ať uživatel
    otevře PowerShell 7 nebo Příkazový řádek, přejde do složky `web` a spustí `npx -y netlify-cli@latest login` (a `sites:create`).
 4. Nasazení: `cd web && npm run nasadit` (můžeš spustit sám; vypíše adresu webu).
 5. Ověř: otevři adresu **v anonymním okně** → musí se ukázat rodinná přihlašovací otázka; po správné odpovědi web.
@@ -84,6 +100,9 @@ předtím musí vyexportovat (`cd web && npm run data`). Když náhled nenaběhn
 zkus v `launch.json` `"runtimeExecutable": "node"` a `"runtimeArgs": ["web/node_modules/astro/bin/astro.mjs", "dev", "--root", "web"]`
 (Astro 7 má spouštěč `astro.mjs`, ne `astro.js`). Server běží jen na tomto počítači – nepřidávej `--host`.
 
+V Cursoru `.claude/launch.json` náhled nespouští. Ve složce `web` spusť `npm run nahled` a pošli odkaz http://localhost:4321.
+I tady server běží jen na tomto počítači – nepřidávej `--host`.
+
 ## Vlastní server (pokročilé)
 - Docker: `web/Dockerfile` (build Astro → nginx s `nginx.conf` z `nginx.sablona.conf`). Před buildem image vždy `npm run data`.
 - CapRover: `npm run deploy-caprover` (vyžaduje nainstalovaný a přihlášený `caprover` CLI).
@@ -93,11 +112,21 @@ Styly `web/src/styles/global.css` (barvy v `:root`), rozložení `web/src/layout
 Barvy rodů jsou v `tools/export_web.py` (`LINE_COLORS`) a `tools/fan_chart.py` (`BASE`). Upravuj jen na přání uživatele
 a po úpravě zkontroluj web na mobilu i počítači.
 
+## Vějíř na webu – plynulý posun a přibližování
+Stránka `/vejir/` je jedno SVG; u velkého vějíře (stovky jmen) by se při posunu a přibližování sekalo. Proto má
+hardwarovou akceleraci jako mapové aplikace (`web/src/lib/fanview.ts`, výpočty a testy v `fanmath.ts`): během pohybu
+grafická karta posouvá připravený obraz, po zastavení se dokreslí ostrý výřez v rozlišení obrazovky.
+- Výchozí `auto`: zapne se jen u velkých vějířů (od `AUTO_MIN_TEXTS` textů), malý vějíř (5–7 generací) jede bez ní.
+- Vynutit: `data/web.json` → `"vejir": { "akcelerace": true }` nebo `false`, pak `npm run data && npm run build`.
+- Vyzkoušet bez přestavění webu: adresa `/vejir/?akcelerace=1`, `=0` nebo `=auto`.
+- Testy výpočtů: ve `web/` `npm test`.
+
 ## Vějíř jako plakát
 `python3 -I tools/fan_chart.py vystupy/` → SVG a HTML (a PNG, je-li nainstalovaný Google Chrome, na Windows i Microsoft Edge) k tisku.
 
 ## Aktualizace staršího projektu
-Znovu spusť `python3 -I SKILL_DIR/tools/novy_projekt.py <složka projektu>`. Data (`data/`, výřezy) zůstanou, `tools/` se přepíše
+Znovu spusť `python3 -I <složka skillu>/tools/novy_projekt.py <složka projektu>`. Data (`data/`, výřezy) zůstanou, `tools/` se přepíše
 a soubory ve `web/`, které se liší od nové šablony, taky – staré verze uloží do `pracovni/zaloha_web_<datum>/` a vypíše jejich seznam.
 Upravoval-li jsi s uživatelem vzhled (styly, stránky), převezmi úpravy ze zálohy (porovnej soubory) a ověř web. Pak ve `web/`
-`npm install` a `npm run data`. Starou šablonu přihlášení `export_web.py` odmítne s výzvou k aktualizaci.
+se stejnou verzí Node.js `>=22.19.0` pro instalaci i build spusť `npm ci`, `npm run data` a `npm run build`.
+`package-lock.json` zachovej; `npm ci` z něj provede čistou instalaci. Starou šablonu přihlášení `export_web.py` odmítne s výzvou k aktualizaci.

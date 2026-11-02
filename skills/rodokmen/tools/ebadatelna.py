@@ -22,10 +22,12 @@ Trvalé odkazy: matrika https://ebadatelna.soapraha.cz/d/<matrikaId>/<snímek>,
                archiválie https://ebadatelna.soapraha.cz/a/<archivalieId>/<snímek>
 Snímky se číslují od 1 (jako v prohlížeči portálu). Na výřez a náhled je potřeba ImageMagick (magick).
 Portál má denní údržbu kolem 4:44 (asi 2 minuty). Ber ohled na server: stahuj jen snímky, které čteš.
+Celé snímky se ukládají do sdílené cache (tools/cache.py), náhled i výřez se pak dělají z ní bez stahování.
 """
 import glob, html, http.client, http.cookiejar, json, os, re, shutil, subprocess, sys, tempfile, time, unicodedata
 import urllib.error, urllib.parse, urllib.request
 import os as _os, sys as _sys; _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__))); import slusne  # noqa: E402 – brzda proti zablokování archivem (společný limit dotazů, tools/slusne.py)
+import cache  # noqa: E402 – sdílená cache stažených snímků (tools/cache.py)
 for _s in (sys.stdout, sys.stderr):   # UTF-8 výstup i na Windows bez -X utf8 (cp1250 neumí třeba „→“)
     if hasattr(_s, "reconfigure"):
         _s.reconfigure(encoding="utf-8", errors="replace")
@@ -73,11 +75,18 @@ def get(path, referer=None, binary=False, data=None, ajax_base=None):
             if e.code == 429 and attempt < 3:   # moc požadavků – počkat (podle Retry-After) a zkusit znovu
                 ra = e.headers.get("Retry-After", "")
                 wait = min(int(ra), 120) if ra.isdigit() else 30 * (attempt + 1)
+                print(f"eBadatelna: HTTP 429; další pokus za {wait or PAUZA} s "
+                      f"({attempt + 2}/4).", file=sys.stderr, flush=True)
             elif e.code < 500 or attempt == 3:
                 raise Chyba(f"portál vrátil chybu HTTP {e.code} ({url}).{udrzba()}")
+            else:
+                print(f"eBadatelna: HTTP {e.code}; další pokus za {wait} s "
+                      f"({attempt + 2}/4).", file=sys.stderr, flush=True)
         except (OSError, http.client.HTTPException) as e:   # i useknutý přenos (IncompleteRead)
             if attempt == 3:
                 raise Chyba(f"portál neodpovídá ({e}).{udrzba() or ' Zkus to za chvíli znovu.'}")
+            print(f"eBadatelna: portál neodpovídá ({e}); další pokus za {wait} s "
+                  f"({attempt + 2}/4).", file=sys.stderr, flush=True)
 
 
 def text(s):
@@ -289,18 +298,7 @@ def odkaz(druh, xid, n):
     return f"{BASE}/{druh}/{xid}/{n}"
 
 
-def snimek(druh, xid, n, out, volby):
-    if not str(n).isdigit() or int(n) < 1:
-        raise Chyba(f"číslo snímku musí být celé číslo od 1 (zadáno „{n}“).")
-    nahled = "nahled" in volby
-    vyrez = next((v for v in volby if v != "nahled"), None)
-    if vyrez:
-        try:
-            x0, y0, x1, y1 = (float(v) for v in vyrez.split(","))
-            assert 0 <= x0 < x1 <= 1 and 0 <= y0 < y1 <= 1
-        except (ValueError, AssertionError):
-            raise Chyba(f"výřez „{vyrez}“ má být x0,y0,x1,y1 jako zlomky 0–1 (x0<x1, y0<y1), např. 0,0,0.5,0.5.")
-    ref = odkaz(druh, xid, n)
+def stahni_snimek(druh, xid, n, ref):
     page, url = get(ref)
     co = "matrika" if druh == "d" else "archiválie"
     if NEEXISTUJE in page:
@@ -314,6 +312,31 @@ def snimek(druh, xid, n, out, volby):
     data, _ = get(urllib.parse.urljoin(url, html.unescape(src.group(1))), referer=url, binary=True)
     if not (data[:3] == b"\xff\xd8\xff" or data[:8] == b"\x89PNG\r\n\x1a\n"):
         raise Chyba(f"portál místo obrázku vrátil něco jiného ({len(data)} B) – snímek chybí nebo údržba?{udrzba()}")
+    return data
+
+
+def snimek(druh, xid, n, out, volby):
+    if not str(n).isdigit() or int(n) < 1:
+        raise Chyba(f"číslo snímku musí být celé číslo od 1 (zadáno „{n}“).")
+    nahled = "nahled" in volby
+    vyrez = next((v for v in volby if v != "nahled"), None)
+    if vyrez:
+        try:
+            x0, y0, x1, y1 = (float(v) for v in vyrez.split(","))
+            assert 0 <= x0 < x1 <= 1 and 0 <= y0 < y1 <= 1
+        except (ValueError, AssertionError):
+            raise Chyba(f"výřez „{vyrez}“ má být x0,y0,x1,y1 jako zlomky 0–1 (x0<x1, y0<y1), např. 0,0,0.5,0.5.")
+    ref = odkaz(druh, xid, n)
+    # portál dává celý snímek jedním souborem – ten je v cache, náhled i výřez se dělají z něj
+    klic = f"ebadatelna/{druh}/{xid}/sn{int(n):04d}"
+    v_cache = next((cache.cesta(klic + e) for e in (".jpg", ".png") if os.path.exists(cache.cesta(klic + e))), None)
+    if v_cache:
+        print("z cache, bez stahování:", v_cache)
+        with open(v_cache, "rb") as f:
+            data = f.read()
+    else:
+        data = stahni_snimek(druh, xid, n, ref)
+        cache.uloz(klic + (".jpg" if data[:3] == b"\xff\xd8\xff" else ".png"), data)
     d = os.path.dirname(os.path.abspath(out))
     os.makedirs(d, exist_ok=True)
     jpeg_ven = os.path.splitext(out)[1].lower() in (".jpg", ".jpeg")
