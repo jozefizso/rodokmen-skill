@@ -1,7 +1,9 @@
 // Data exported from the research repo by tools/export_web.py (re-run `npm run data` after changes).
 import site from '../data/site.json';
+import stories from '../generated/pribehy.json';
 
 export const { people, families, lines, stats, issues, hypotheses, docs, config } = site;
+export { stories };
 /** Osoby mimo přímou linii (data/osoby.py RODINA) pro stromový graf. */
 export const others = site.others ?? [];
 /** Počet rodů slovem pro nadpisy („Osm rodů“). */
