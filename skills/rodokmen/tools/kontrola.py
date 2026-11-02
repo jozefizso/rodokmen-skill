@@ -19,6 +19,28 @@ def jload(name, default):
     return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else default
 
 
+def research_log_stats(path):
+    """Count numbered research-log rows and return duplicate identifiers."""
+    identifier_re = re.compile(r"^\|\s*(\d+|[A-Za-z][A-Za-z0-9]*-\d+)\s*\|")
+    seen, duplicates = {}, set()
+    rows = 0
+    if not os.path.exists(path):
+        return rows, []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            match = identifier_re.match(line)
+            if not match:
+                continue
+            rows += 1
+            identifier = match.group(1)
+            normalized = identifier.casefold()
+            if normalized in seen:
+                duplicates.add(seen[normalized])
+            else:
+                seen[normalized] = identifier
+    return rows, sorted(duplicates, key=str.casefold)
+
+
 def main():
     err, warn = [], []
     ns = {}
@@ -57,6 +79,28 @@ def main():
         for r in s.get("r", []):
             if r not in keys:
                 err.append(f"boční příbuzný '{s.get('n')}' cituje neexistující zápis '{r}'")
+    R = ns.get("RODINA", {})
+    odkazy = {v for o in R.values() for v in [o.get("otec"), o.get("matka"), *o.get("partner", [])] if isinstance(v, str)}
+    for oid, o in R.items():
+        kde = f"RODINA '{oid}' ({o.get('n')})"
+        if o.get("sex") not in ("M", "F"):
+            err.append(f"{kde}: chybí sex=\"M\" nebo \"F\"")
+        if o.get("st", "fam") not in ("doc", "prob", "fam", "mh", "unk"):
+            err.append(f"{kde}: neznámý stav '{o.get('st')}'")
+        for pole in ("otec", "matka"):
+            v = o.get(pole)
+            if isinstance(v, str) and v not in R:
+                err.append(f"{kde}: {pole} '{v}' není v RODINA")
+            elif isinstance(v, int) and v < 2:
+                err.append(f"{kde}: {pole} {v} – číslo předka musí být aspoň 2")
+        for v in o.get("partner", []):
+            if isinstance(v, str) and v not in R or isinstance(v, int) and v not in P and v not in SAME:
+                err.append(f"{kde}: partner {v!r} neexistuje")
+        if not (o.get("otec") or o.get("matka") or o.get("partner")) and oid not in odkazy:
+            err.append(f"{kde}: není s nikým spojen (chybí otec, matka i partner)")
+        for r in o.get("r", []):
+            if r not in keys:
+                err.append(f"{kde} cituje neexistující zápis '{r}'")
     for a, c in SAME.items():
         if c not in P:
             err.append(f"SAME: {a} -> {c}, ale osoba {c} neexistuje")
@@ -64,7 +108,7 @@ def main():
         if k not in range(8, 16):
             err.append(f"LINES: rod {k} – rody mají čísla 8 až 15 (pradědečci a prababičky)")
 
-    cited = ({r for p in P.values() for r in p.get("r", [])} | {r for s in SIDE for r in s.get("r", [])}
+    cited = ( {r for p in list(P.values()) + list(R.values()) for r in p.get("r", [])} | {r for s in SIDE for r in s.get("r", [])}
              | {r for h in ns.get("HYPOTEZY", []) if isinstance(h, dict) for r in h.get("zaznamy", [])})
     for z in zaz:
         k = z.get("klic", "?")
@@ -125,6 +169,7 @@ def main():
         roky = [int(y) for y in re.findall(r"\b1[5-9]\d\d|20\d\d\b", p.get("y", "") + " " + text)]
         texty.append((f"osoba {k}", text + (f" {hranice}" if roky and min(roky) >= 1870 or k < 8 else "")))
     texty += [(f"boční příbuzný {s.get('n')}", s.get("n", "") + " " + s.get("t", "")) for s in SIDE]
+    texty += [(f"RODINA {oid}", " ".join(o.get("f", [])) + " " + o.get("note", "") + " " + o.get("y", "")) for oid, o in R.items()]
     for f in ("zajimavosti.md", "pribeh.md"):
         path = os.path.join(DATA, f)
         if os.path.exists(path):
@@ -156,7 +201,9 @@ def main():
                         f"(data/pribeh.md, reference/pribehy.md); koncept nejdřív ukaž uživateli v chatu")
 
     log = os.path.join(DATA, "research_log.md")
-    rows = sum(1 for l in open(log, encoding="utf-8") if re.match(r"^\| \d+ \|", l)) if os.path.exists(log) else 0
+    rows, duplicate_ids = research_log_stats(log)
+    if duplicate_ids:
+        err.append(f"deník obsahuje duplicitní identifikátory: {', '.join(duplicate_ids)}")
     print(f"{len(P)} osob, {len(zaz)} zápisů, {len(svazky)} svazků, {rows} řádků deníku")
     for e in err:
         print("CHYBA:", e)
