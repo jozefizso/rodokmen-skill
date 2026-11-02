@@ -40,17 +40,22 @@ Adresy u nevyzkoušených portálů ověř při prvním použití (portály se m
 - `trebon.py misto "Obec"` → id místa. Diakritiku a mezery nástroj odstraní sám (portál zná jen „RatiborskeHory“).
   Portál vrátí vždy jen jedno místo – **zkontroluj vypsaný název a okres**: u stejnojmenných obcí jinou (Buk → Bukovka),
   u měst i okres nebo synagogu (Jindřichův Hradec → okres 1949–1960). Správné id pak najdi na portálu a pracuj s ním.
-  Malé osady portál jako místo nezná vůbec (Malá Chyška) – hledej farní nebo sousední obec (Chyšky) a osadu v popisu knih.
+  Název sídla farnosti sám neurčuje, které obce svazek pokrývá: porovnej popis a seznam obcí u konkrétní knihy,
+  případně její úvodní snímky. Malé osady portál jako místo nezná vůbec (Malá Chyška) – hledej farní nebo sousední
+  obec (Chyšky) a osadu v popisu knih.
   Občasná chyba 500 bývá výpadek portálu – nástroj zkouší znovu; když trvá, zkus to později.
 - `trebon.py svazky <id|"Obec">` → knihy místa (id knihy, druh, roky, obce).
 - `trebon.py rejstrik <id_knihy> <písmeno>` → **dobrovolnický jmenný rejstřík** knihy se snímkem, obrovská úspora.
-  Ne každá kniha ho má; prázdný výsledek = rejstřík chybí, ne „osoba tam není“.
+  Ne každá kniha ho má; prázdný výsledek nebo chybějící písmeno **nedokazuje, že osoba v matrice není**.
+  Rejstřík je pomůcka k nalezení zápisu, který pak ověř v samotné matrice.
 - `trebon.py snimek <id_knihy> <snímek> pracovni/x.jpg [nahled]`, `trebon.py svazek <id_knihy>` (do `svazky.json`).
 - Trvalý odkaz: `https://digi.ceskearchivy.cz/<id_knihy>/<snímek>`.
 - Některé fary mají knihy po vesnicích, které nejsou v seznamu svazků místa (Vacov → Žár) – hledej podle titulků knih fary.
 - **Civilní matriky (1920–1945) lidí bez vyznání** jsou v knihách okresních úřadů (např. Tábor, kniha 12304) a mají
   dobrovolnický rejstřík (`trebon.py rejstrik 12304 N`). Dobrá cesta, když farní matrika mlčí. V `svazky "Obec"`
   se neukážou (patří okresu, ne obci) – id knihy najdi na portálu.
+- U oddacích rejstříků zkus při neúspěchu hledat také pod příjmením ženicha; řazení se může lišit. Číslo folia
+  z rejstříku nepřeváděj pevným offsetem na snímek: najdi folio v knize a ověř okolní strany podle číslování a roku.
 
 ## SOA Plzeň (Porta fontium, portafontium.eu) – `tools/portafontium.py`, bez prohlížeče
 - `portafontium.py fara <fara>` → knihy fary: kniha | obce | roky a druhy (`*` N, `oo` O, `+` Z, `i` index) | popis.
