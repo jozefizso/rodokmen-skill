@@ -12,6 +12,8 @@ Použití (z kořene projektu):
 Užitečné u předků, kteří žili v Brně: bydliště s adresou, povolání a hrob na Ústředním hřbitově vedou k matrice, rodině a hrobovému místu.
 Heslo je tištěný životopis významné osoby, ne evidence obyvatel – běžní obyvatelé tu být nemusí. Zdroj cituj: „Encyklopedie dějin města Brna“.
 """
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__))); import slusne  # shared archive rate limiter
+
 import html, json, re, sys, time, urllib.parse, urllib.request
 for _s in (sys.stdout, sys.stderr):   # UTF-8 výstup i na Windows bez -X utf8 (cp1250 neumí třeba „→“)
     if hasattr(_s, "reconfigure"):

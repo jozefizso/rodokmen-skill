@@ -25,8 +25,9 @@ Mladší knihy jsou na matričním úřadě obce s rozšířenou působností / 
 2. **Svazek podle roku a druhu.** Pozor na překryvy: jedna kniha pro více obcí, zvláštní knihy pro jednotlivé obce.
    **Druhopisy** (duplikáty pro děkanát nebo úřad, např. „T“ svazky v ZA Opava) mívají N, O a Z jednoho roku u sebe –
    hodí se, když originál chybí, je nečitelný nebo velký.
-3. **Index, pak kniha.** Index řazený po písmenech a letech dá stránku/folio; snímek odhadni (snímek ≈ folio × 1 až 2) a dolaď.
-   Starší rejstříky (18. stol.) občas ukazují o 1–4 strany vedle – když zápis na udané straně není, listuj kolem.
+3. **Index, pak kniha.** Index řazený po písmenech a letech dá stránku/folio; číslo folia nepřeváděj pevným offsetem
+   na číslo snímku. Najdi folio podle číslování přímo v knize a zkontroluj okolní strany – vložené, chybějící nebo
+   nečíslované listy mohou vztah mezi folií a snímkem změnit.
    Posun „snímek – strana“ se v knize mění (vložené listy, chybějící strany) – přečti číslo strany na náhledu a dopočítej.
    U starých far se vyplatí nejdřív najít **souhrnný index** přes víc desetiletí (např. N/O/Z 1636–1746) – dovede
    rychle až do 17. století. Rejstříky bývají podle **německého pravopisu**: česká jména na O a V hledej i pod W
@@ -41,6 +42,8 @@ Mladší knihy jsou na matričním úřadě obce s rozšířenou působností / 
    okolní fary. (Skutečná chyba: „9?“ přečteno jako 97, prošlo se pět okolních far; sňatek byl doma o pět let dřív.)
 5. **Přečti celý zápis**, pak se podívej i na okolí (dvojčata, další děti stejných rodičů).
 6. **Sňatek se obvykle konal ve farnosti nevěsty** (v jejím bydlišti) – hledej ho nejdřív tam, pak ve faře ženicha.
+   Když oddací rejstřík pod nevěstiným příjmením nic neukáže, zkus také příjmení ženicha; rejstříky se mohou lišit
+   způsobem řazení.
    Nedaří se? Ve křtu dítěte bývá (Praha ~1880–1890) připsané datum a místo sňatku rodičů – ověř ho v oddaných.
 7. **Rodina v katolické matrice chybí? Zkus evangelickou nebo židovskou.** Po toleranci (1781) vedly vlastní matriky
    evangelické sbory (a. v. i h. v.), jeden sbor pokrýval desítky obcí; v ARONu mají signatury „R …“ a `aron_search.py`
@@ -51,6 +54,11 @@ Mladší knihy jsou na matričním úřadě obce s rozšířenou působností / 
 - Kurentový rejstřík: stáhni plné rozlišení a rozřež stránku na čtvrtiny (sloupec jmen + data),
   `magick f.jpg -crop 1250x1650+X+Y +repage ctvrt.jpg`. **Dopisované řádky** se snadno přečtou špatně (Franziska × Heinrich,
   strana 131 × 151) – údaj z rejstříku vždy ověř v matrice.
+- **Kniha bez rejstříku** (hledáš rodiče podle příjmení): stáhni jen sloupec otce (nebo matky) z mnoha snímků
+  v nízkém rozlišení (`aron_img.py <apu> <n> 2 pracovni/x/o<n>.jpg x0,y0,x1,y1` – výřez nastav podle sloupce na jednom snímku, víc
+  najednou přes `xargs -P 4`) a slož je po osmi vedle sebe (`magick montage o1.jpg … o8.jpg -tile 8x1 -geometry +4+0 m.jpg`).
+  Úroveň 2 na čtení příjmení stačí, menší ne. Nalezený zápis pak stáhni celý v úrovni 1 nebo 0 (0 = plné rozlišení).
+  Nezapomeň na nemanželské děti – otec je prázdný a příjmení je ve sloupci matky.
 - Do ~1780 latina nebo čeština, pak hodně němčina (kurent), od ~1860 často čeština, ve 20. století čeština.
 - Česká jména v němčině/latině: Johann/Joannes = Jan, Wenzel/Wenceslaus = Václav, Joseph = Josef, Franz/Franciscus = František,
   Maria = Marie, Anna, Katharina = Kateřina, Barbara = Barbora, Magdalena = Majdalena/Magdaléna, Theresia = Terezie,
@@ -92,6 +100,8 @@ Mladší knihy jsou na matričním úřadě obce s rozšířenou působností / 
   matky (dítě se často narodilo u jejích rodičů).
 - Nevěsta mívala 18–28, ženich 22–32; děti po 1,5–3 letech.
 - „Vdovec“ u ženicha = hledej první manželství a děti z něj.
+- Při přepisu křtu ověř měsíc podle záhlaví příslušného sloupce a nepopleť číslo domu porodní báby
+  (*obstetrix*, *Hebamme*) s rodištěm dítěte.
 
 ## Stavy údajů v datech
 | stav | kdy |
@@ -110,6 +120,15 @@ Mladší knihy jsou na matričním úřadě obce s rozšířenou působností / 
 - Stejný předek dvakrát v rodokmenu (vzdálení příbuzní se vzali) – v datech `SAME`.
 - Index nenašel ≠ zápis neexistuje. Zapiš, co přesně jsi prošel.
 - Pomocníci (subagenti) a OCR/AI čtou historické písmo chybně – vždy ověř sám (viz `playbook.md` §1 bod 10).
+- Velké kolo s pomocníky (zkušenost s 10 souběžnými): společná pravidla dej do jednoho souboru (`pracovni/ZADANI_POMOCNIK.md`)
+  a v zadání na něj jen odkaž. Do pravidel patří: obrázek pro čtení zmenšit na max. 2000 px (jinak se nástroji
+  nezobrazí a pomocník „čte“ naslepo), **nikdy nepsat přepis zápisu, který neviděl**, ukládat výsledek průběžně po každém
+  nálezu (pomocník může skončit předčasně), u nálezu uvést soubor výřezu, ze kterého četl. Kurent 1. poloviny 19. století
+  ve středním rozlišení ARON (úroveň 1) spolehlivě nepřečte – chtěj plné rozlišení a výřez sloupce. Víc než ~5 pomocníků
+  současně na ARON ho přetíží (snímek pak trvá minuty) – rozlož je mezi archivy (ARON, Porta fontium, eBadatelna).
+- Nemanželské dítě matky se stejným jménem: rodinný strom může „dosadit“ za rodiče prarodiče (nemanželská dcera
+  svobodné matky vedená jako dcera matčina bratra). Rozhodne zápis o sňatku nebo úmrtí dítěte (uvádí matku) a to, zda je v matrice
+  jiné dítě daného jména.
 
 ## Technické pasti (macOS, zsh) – napiš je i pomocníkům do zadání
 - Shell je zsh: `for a in "x y z"; do set -- $a` slova nerozdělí (v zsh `${=a}`); `ls F*` bez shody = chyba
@@ -130,7 +149,7 @@ Mladší knihy jsou na matričním úřadě obce s rozšířenou působností / 
   přesměrování do souboru (soubor z `… --osoby > x.py` by jinak vznikl v cp1250; ve Windows PowerShellu 5.1 `>` dokonce
   zapisuje UTF-16 – přesměrovávej v Git Bash). Proměnná `PYTHONUTF8` s `-I` nefunguje.
 - ImageMagick je `magick`, nikdy `convert` (`convert` je ve Windows systémový nástroj na převod disku z FAT na NTFS).
-  Po instalaci přes winget je `magick` v PATH až po restartu Claude Code. Písmo pro `-annotate`: `-font C:/Windows/Fonts/arial.ttf`.
+  Po instalaci přes winget je `magick` v PATH až po restartu agenta. Písmo pro `-annotate`: `-font C:/Windows/Fonts/arial.ttf`.
 - Limit délky příkazové řádky je 32 767 znaků – stovky souborů (dlaždic) v jednom příkazu `magick` neprojdou
   (WinError 206); skládej po řádcích.
 - Skripty `.sh` přes Git Bash (`bash tools/…`). Markdown a JSON nikdy neupravuj `sed -i` (escapy v Git Bash rozbijí
@@ -138,4 +157,3 @@ Mladší knihy jsou na matričním úřadě obce s rozšířenou působností / 
 - Windows nerozlišuje velikost písmen v názvech (`o_29.jpg` = `O_29.jpg`) – náhled a plné rozlišení odliš předponou
   (`nahled_`, `plne_`), jinak se přepíšou.
 - Datové soubory zapisuj v UTF-8 **bez BOM** (Windows PowerShell 5.1 s `-Encoding UTF8` přidá BOM a `osoby.py` pak nejde načíst).
-

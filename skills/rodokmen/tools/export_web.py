@@ -8,7 +8,7 @@ web/nginx.conf a web/netlify/edge-functions/brana.js.
 
 Spouští se z web/ příkazem `npm run data` (nebo přímo `python3 -I tools/export_web.py`, na Windows `python -I -X utf8 …`).
 """
-import hashlib, html, json, os, re, shutil, subprocess, sys, unicodedata
+import datetime, hashlib, html, json, os, re, shutil, subprocess, sys, unicodedata
 for _s in (sys.stdout, sys.stderr):   # UTF-8 výstup i na Windows bez -X utf8 (cp1250 neumí třeba „→“)
     if hasattr(_s, "reconfigure"):
         _s.reconfigure(encoding="utf-8", errors="replace")
@@ -24,6 +24,8 @@ LINE_COLORS = {8: "#EFB45F", 9: "#F09A78", 10: "#E58AA6", 11: "#B99AE0",
                12: "#86B8E8", 13: "#6FCBB9", 14: "#9CD17A", 15: "#D3D46A"}
 STATUS = {"doc": "doloženo matrikou", "prob": "pravděpodobné", "fam": "údaj od rodiny",
           "mh": "jen z cizího rodokmenu", "unk": "neznámé"}
+SIDE_KIND = {"bratr": "sib", "sestra": "sib", "manžel": "spouse", "manželka": "spouse", "syn": "child", "dcera": "child"}
+SIB_STATUS = {"hotovo": "done", "částečně": "partial"}
 KINDS = {"N": "křest / narození", "O": "sňatek", "Z": "úmrtí", "I": "rejstřík", "S": "sčítání lidu", "J": "jiný pramen"}
 
 
@@ -38,7 +40,7 @@ def jload(name, default):
 def load_people():
     ns = {}
     exec(open(os.path.join(DATA, "osoby.py"), encoding="utf-8").read(), ns)
-    for name, default in (("P", {}), ("SIDE", []), ("LINES", {}), ("ISSUES", []), ("HYPOTEZY", []), ("SAME", {})):
+    for name, default in (("P", {}), ("SIDE", []), ("LINES", {}), ("ISSUES", []), ("HYPOTEZY", []), ("SAME", {}), ("RODINA", {})):
         ns.setdefault(name, default)
     return ns
 
@@ -65,16 +67,60 @@ def strip_comments(md):
     return re.sub(r"<!--.*?-->\n?", "", md, flags=re.S)
 
 
+def story_frontmatter(path, slug, require_rod=True):
+    """Načte omezené skalární frontmatter pro příběhy bez další Python závislosti."""
+    with open(path, encoding="utf-8") as source:
+        text = source.read()
+    match = re.match(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)", text, re.S)
+    if not match:
+        sys.exit(f"CHYBA: {path}: chybí YAML frontmatter.")
+    fields = {}
+    for line in match.group(1).splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        item = re.fullmatch(r"(title|lead|rod):\s*(.*?)\s*", line)
+        if not item:
+            sys.exit(f"CHYBA: {path}: očekávám pouze skalární pole title, lead a rod.")
+        key, value = item.groups()
+        if key in fields:
+            sys.exit(f"CHYBA: {path}: pole {key} je uvedené vícekrát.")
+        if value.startswith('"'):
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError as ex:
+                sys.exit(f"CHYBA: {path}: neplatná hodnota {key}: {ex}")
+            if not isinstance(value, str):
+                sys.exit(f"CHYBA: {path}: {key} musí být text.")
+        elif value.startswith("'"):
+            if len(value) < 2 or not value.endswith("'"):
+                sys.exit(f"CHYBA: {path}: neuzavřená hodnota {key}.")
+            value = value[1:-1].replace("''", "'")
+        fields[key] = value
+    for key in ("title", "lead") + (("rod",) if require_rod else ()):
+        if key not in fields:
+            sys.exit(f"CHYBA: {path}: ve frontmatter chybí pole {key}.")
+    if not fields["title"].strip():
+        sys.exit(f"CHYBA: {path}: title nesmí být prázdný.")
+    rod = fields.get("rod")
+    if require_rod and not re.fullmatch(r"(?:[8-9]|1[0-5])", rod or ""):
+        sys.exit(f"CHYBA: {path}: rod musí být číslo 8 až 15.")
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
+        sys.exit(f"CHYBA: {path}: název souboru musí být bezpečný slug z malých písmen, číslic a pomlček.")
+    return dict(slug=slug, title=fields["title"], lead=fields["lead"],
+                rod=int(rod) if require_rod else None, text=text)
+
+
 def slugify(text):
     t = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower()
     return re.sub(r"[^a-z0-9]+", "-", t).strip("-")
 
 
 def norm_answer(text):
-    """Stejná normalizace jako v prihlaseni.html: bez diakritiky, malá písmena, jen a-z0-9."""
+    """Stejná normalizace jako v prihlaseni.html: bez diakritiky, malá písmena, jen a-z0-9.
+    Kdyby z odpovědi nezbylo nic (např. „***“ nebo azbuka), použije se malými písmeny bez mezer – jinak by byla prázdná."""
     t = unicodedata.normalize("NFD", text)
     t = "".join(c for c in t if not unicodedata.combining(c)).lower()
-    return re.sub(r"[^a-z0-9]", "", t)
+    return re.sub(r"[^a-z0-9]", "", t) or re.sub(r"\s+", "", t)
 
 
 def years(y):
@@ -182,7 +228,10 @@ def login_files(cfg):
         nginx_map = "  default 1;"
         if os.path.exists(edge):
             os.remove(edge)
-    nginx = open(os.path.join(WEB, "nginx.sablona.conf"), encoding="utf-8").read().replace("{{ODPOVED}}", nginx_map)
+    nginx = open(os.path.join(WEB, "nginx.sablona.conf"), encoding="utf-8").read()
+    if not answer:   # šablona už má „default 0;“ – druhý default nginx odmítne
+        nginx = nginx.replace("  default 0;\n", "")
+    nginx = nginx.replace("{{ODPOVED}}", nginx_map)
     write(os.path.join(WEB, "nginx.conf"), nginx)
     return bool(answer)
 
@@ -194,6 +243,9 @@ def main():
         sys.exit("V data/osoby.py chybí výchozí osoba (číslo 1).")
     SAME = ns["SAME"]                       # alias Kekulé → kanonické Kekulé (předek v rodokmenu vícekrát)
     cfg = jload("web.json", {})
+    # web.json "puvodni_jmena": true → jméno osoby v původních tvarech ze zápisů (pole zap v osoby.py, „Nowakin / Nováková“);
+    # jinak dnešní podoba n. Adresa stránky (slug) je vždy podle n.
+    puvodni = lambda p: " / ".join(p["zap"]) if cfg.get("puvodni_jmena") and p.get("zap") else p["n"]
     login = cfg.get("prihlaseni") or {}
     if "--nasazeni" in sys.argv and not norm_answer(login.get("odpoved", "")) and not login.get("otevreny"):
         sys.exit("CHYBA: v data/web.json není odpověď na přihlašovací otázku – web by byl otevřený komukoli.\n"
@@ -232,14 +284,16 @@ def main():
             path.append(slugs.get(c))
             c //= 2
         people[slugs[k]] = dict(
-            k=k, slug=slugs[k], name=p["n"], y=p.get("y", ""), years=years(p.get("y")), st=p.get("st", "unk"),
+            k=k, slug=slugs[k], name=puvodni(p), modern=p["n"], zap=p.get("zap", []), y=p.get("y", ""), years=years(p.get("y")), st=p.get("st", "unk"),
             status=STATUS.get(p.get("st"), ""), gen=gen(k), sex="M" if k == 1 and p.get("sex", "M") == "M" or k > 1 and k % 2 == 0 else "F",
-            rel=relation(k), line=line_of(k), facts=p.get("f", []), note=p.get("note", ""), records=[r for r in p.get("r", []) if r in recs],
+            rel=relation(k), line=line_of(k), facts=p.get("f", []), note=p.get("note", ""), vyz=p.get("vyz", ""), records=[r for r in p.get("r", []) if r in recs],
             father=slugs.get(2 * k), mother=slugs.get(2 * k + 1),
             fatherUnknown=(2 * k in P and placeholder(P[2 * k])), motherUnknown=(2 * k + 1 in P and placeholder(P[2 * k + 1])),
             child=slugs.get(k // 2) if k > 1 else None, spouse=slugs.get(k ^ 1) if k > 1 else None,
             family=None, ownFamily=None, path=path,
-            side=[dict(name=s["n"], text=s["t"], records=[r for r in s.get("r", []) if r in recs]) for s in SIDE if s["k"] == k],
+            side=[dict(name=s["n"], text=s["t"], records=[r for r in s.get("r", []) if r in recs], rel=s.get("v") or "příbuzný",
+                       years=years(s.get("y")), kind=SIDE_KIND.get((s.get("v") or "").lower(), "other")) for s in SIDE if s["k"] == k],
+            sibStatus=SIB_STATUS.get(p.get("sour"), "none"),
             docs=[dict(img=d["img"], caption=d["popis"]) for d in docs_cfg if k in d.get("osoby", [])],
             children=[slugs[c] for c in [k // 2] + [a // 2 for a in aliases_of.get(k, [])] if k > 1 and c in slugs],
             also=[dict(k=a, rel=relation(a), line=line_of(a), child=slugs.get(a // 2)) for a in aliases_of.get(k, [])],
@@ -248,6 +302,40 @@ def main():
             for a in aliases_of[k]:
                 people[slugs[k]]["records"] = list(dict.fromkeys(people[slugs[k]]["records"] + [r for r in P[a].get("r", []) if r in recs]))
             people[slugs[k]]["facts"] = [f for f in people[slugs[k]]["facts"] if not f.startswith("TÁŽ OSOBA")]
+
+    # RODINA: osoby mimo přímou linii pro stromový graf. Odkazy: "k12" = přímý předek, "o:zkratka" = osoba z RODINA,
+    # "?12" = neznámý předek na místě 12 (sourozenci se tak poznají i bez známých rodičů).
+    R = ns["RODINA"]
+
+    def ref(v):
+        if isinstance(v, int):
+            v = SAME.get(v, v)
+            return f"k{v}" if v in slugs else f"?{v}"
+        return f"o:{v}" if isinstance(v, str) and v in R else None
+
+    others = []
+    for oid, o in R.items():
+        others.append(dict(id=f"o:{oid}", name=o["n"], y=o.get("y", ""), years=years(o.get("y")), sex=o.get("sex", ""),
+                           st=o.get("st", ""), status=STATUS.get(o.get("st"), ""), father=ref(o.get("otec")),
+                           mother=ref(o.get("matka")), partners=[x for x in map(ref, o.get("partner", [])) if x],
+                           facts=o.get("f", []), note=o.get("note", ""), records=[r for r in o.get("r", []) if r in recs]))
+    # na stránce osoby a rodiny je ukázat jako příbuzné (dřív byli jen v SIDE)
+    for pp in people.values():
+        me, k = f"k{pp['k']}", pp["k"]
+        birth = (ref(2 * k), ref(2 * k + 1))
+        for o in others:
+            if (o["father"], o["mother"]) == birth:
+                rel = "bratr" if o["sex"] == "M" else "sestra"
+            elif o["father"] == me or o["mother"] == me:
+                rel = "syn" if o["sex"] == "M" else "dcera"
+            elif me in o["partners"] or any(me in (c["father"], c["mother"]) and o["id"] in (c["father"], c["mother"]) for c in others):
+                rel = "manžel" if o["sex"] == "M" else "manželka"
+            elif birth[0] in (o["father"], o["mother"]) and not birth[0].startswith("?") or                     birth[1] in (o["father"], o["mother"]) and not birth[1].startswith("?"):
+                rel = "nevlastní bratr" if o["sex"] == "M" else "nevlastní sestra"
+            else:
+                continue
+            pp["side"].append(dict(name=o["name"], text=o["note"] or "; ".join(o["facts"]), records=o["records"], rel=rel,
+                                   years=o["years"], kind=SIDE_KIND.get(rel, "other"), id=o["id"]))
 
     families = {}
     for k in sorted(P):
@@ -325,16 +413,54 @@ def main():
 
     known = [p for p in people.values() if p["k"] > 1]
     stats = dict(ancestors=len(known), documented=sum(p["st"] == "doc" for p in known), records=len(records),
-                 generations=max(p["gen"] for p in people.values()) + 1)
+                 generations=max(p["gen"] for p in people.values()) + 1,
+                 updated=(lambda d: f"{d.day}. {d.month}. {d.year} {d.hour}:{d.minute:02d}")(datetime.datetime.now()))
     hypotheses = [dict(line=h.get("rod"), title=h.get("nadpis", "Hypotéza"), text=h.get("text", ""),
                        items=[dict(name=a, text=b) for a, b in h.get("polozky", [])],
                        records=[r for r in h.get("zaznamy", []) if r in recs]) for h in ns["HYPOTEZY"]]
 
-    has_story = os.path.exists(os.path.join(DATA, "pribeh.md"))
+    story_dir = os.path.join(DATA, "pribehy")
+    story_files = sorted(
+        os.path.join(story_dir, name) for name in os.listdir(story_dir)
+        if name.endswith(".md")
+    ) if os.path.isdir(story_dir) else []
+    stories = [story_frontmatter(path, os.path.splitext(os.path.basename(path))[0])
+               for path in story_files]
+    multi_stories = bool(stories)
+    configured_order = cfg.get("pribehy", [])
+    if not isinstance(configured_order, list) or any(not isinstance(slug, str) for slug in configured_order):
+        sys.exit("CHYBA: web.json → pribehy musí být seznam slugů příběhů.")
+    if multi_stories:
+        slugs_in_files = [story["slug"] for story in stories]
+        if len(set(slugs_in_files)) != len(slugs_in_files):
+            sys.exit("CHYBA: názvy souborů příběhů se po převodu na slug opakují.")
+        if configured_order:
+            if len(set(configured_order)) != len(configured_order) or set(configured_order) != set(slugs_in_files):
+                sys.exit("CHYBA: web.json → pribehy musí obsahovat každý slug v data/pribehy/ právě jednou.")
+            by_slug = {story["slug"]: story for story in stories}
+            stories = [by_slug[slug] for slug in configured_order]
+    elif configured_order:
+        sys.exit("CHYBA: web.json → pribehy odkazuje na příběhy, ale data/pribehy/ neobsahuje žádné Markdown soubory.")
+    legacy_story = os.path.join(DATA, "pribeh.md")
+    if not multi_stories and os.path.exists(legacy_story):
+        legacy_text = open(legacy_story, encoding="utf-8").read()
+        legacy_match = re.match(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)", legacy_text, re.S)
+        legacy_fields = {}
+        if legacy_match:
+            for line in legacy_match.group(1).splitlines():
+                item = re.fullmatch(r"(title|lead):\s*(.*?)\s*", line)
+                if item:
+                    legacy_fields[item.group(1)] = item.group(2)
+        stories = [dict(slug="", title=legacy_fields.get("title", "Příběh"),
+                        lead=legacy_fields.get("lead", ""), rod=cfg.get("pribeh", {}).get("rod"),
+                        text=legacy_text)]
+    has_story = bool(stories)
     public_cfg = {k: v for k, v in cfg.items() if k != "prihlaseni"}
     public_cfg["maPribeh"] = has_story
+    public_cfg["maVicePribehu"] = multi_stories
+    public_cfg["pribehy"] = [story["slug"] for story in stories] if multi_stories else []
     site = dict(config=public_cfg, places=places, root=slugs[1], aliases={a: slugs[a] for a in SAME}, people=people,
-                families=families, records=records, lines=lines,
+                families=families, others=others, records=records, lines=lines,
                 issues=[dict(title=i, text="") if isinstance(i, str) else dict(title=i[0], text=i[1]) for i in ISSUES], stats=stats, hypotheses=hypotheses,
                 docs=[dict(img=d["img"], caption=d["popis"], people=[slugs[k] for k in d.get("osoby", []) if k in slugs])
                       for d in docs_cfg if os.path.exists(os.path.join(VYREZY, d["img"] + ".jpg"))])
@@ -345,8 +471,15 @@ def main():
         path = os.path.join(DATA, src)
         text = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
         write(os.path.join(gen_dir, dst), strip_comments(re.sub(r"^# .*\n", "", text, count=1)))
-    story = os.path.join(DATA, "pribeh.md")
-    write(os.path.join(gen_dir, "pribeh.md"), strip_comments(open(story, encoding="utf-8").read()) if has_story else "---\ntitle: Příběh\nlead: ''\n---\n")
+    shutil.rmtree(os.path.join(gen_dir, "pribehy"), ignore_errors=True)
+    if multi_stories:
+        for story in stories:
+            write(os.path.join(gen_dir, "pribehy", story["slug"] + ".md"), strip_comments(story["text"]))
+    write(os.path.join(gen_dir, "pribehy.json"), json.dumps(
+        [{key: story[key] for key in ("slug", "title", "lead", "rod")} for story in stories if story["slug"]],
+        ensure_ascii=False, indent=1))
+    story = stories[0]["text"] if stories else "---\ntitle: Příběh\nlead: ''\n---\n"
+    write(os.path.join(gen_dir, "pribeh.md"), strip_comments(story))
 
     hrefs = os.path.join(gen_dir, "fan_hrefs.json")
     json.dump({k: f"/osoba/{s}/" for k, s in slugs.items()}, open(hrefs, "w", encoding="utf-8", newline="\n"))
@@ -382,12 +515,22 @@ def main():
     # odkazy v textech, které nikam nevedou (adresa osoby se změní třeba doplněním roku narození: jan-novak → jan-novak-1798)
     targets = dict(osoba=people, zdroj=recs, rod=lines, rodina=families)
     texts = {f: open(os.path.join(gen_dir, f), encoding="utf-8").read() for f in ("pribeh.md", "zajimavosti.md")}
+    if multi_stories:
+        texts.update({f"pribehy/{story['slug']}.md": story["text"] for story in stories})
     texts["web.json"] = json.dumps(cfg, ensure_ascii=False)
     texts["osoby.py (hypotézy)"] = json.dumps(hypotheses, ensure_ascii=False)
+    targets["pribehy"] = {story["slug"] for story in stories if story["slug"]}
     broken = [(f, m.group(0)) for f, t in texts.items()
-              for m in re.finditer(r"/(osoba|zdroj|rod|rodina)/([^/\s)\"'#?<>\]]+)", t) if m.group(2) not in targets[m.group(1)]]
+              for m in re.finditer(r"/(osoba|zdroj|rod|rodina|pribehy)/([^/\s)\"'#?<>\]]+)", t)
+              if m.group(2) not in targets[m.group(1)]]
     for f, link in dict.fromkeys(broken):
         print(f"POZOR: nefunkční odkaz {link}/ v {f} – oprav ho (adresy stránek jsou ve web/src/data/site.json)")
+
+    # stránky Statistiky a Domy se počítají z hotového site.json
+    sys.path.insert(0, TOOLS)
+    import statistiky, domy_export
+    statistiky.main()
+    domy_export.main()
 
 
 if __name__ == "__main__":

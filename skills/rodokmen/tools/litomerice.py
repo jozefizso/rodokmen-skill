@@ -16,6 +16,8 @@ zapamatuje dotaz (pracovni/litomerice_dotazy.json); jinak ho zadej přepínačem
 POZOR: portál po zhruba 100 rychlých požadavcích na své stránky zablokuje přístup na 30 minut. Každé `snimek`/`info`/`link` je
 ~4 požadavky; nástroj dělá pauzy, ale nestahuj desítky snímků za sebou (obrázkový server limit nemá). Pomocníkům to napiš do zadání.
 """
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__))); import slusne  # shared archive rate limiter
+
 import html, http.cookiejar, json, os, re, subprocess, sys, time, urllib.parse, urllib.request
 for _s in (sys.stdout, sys.stderr):   # UTF-8 výstup i na Windows bez -X utf8 (cp1250 neumí třeba „→“)
     if hasattr(_s, "reconfigure"):

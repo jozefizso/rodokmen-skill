@@ -13,6 +13,8 @@ Použití (z kořene projektu):
 Údaje jsou z dobových dokumentů (často z Národního archivu) – ověř datum a místo narození v rodině a v matrice.
 Citlivé – na web jen se souhlasem rodiny (soukromi.md).
 """
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__))); import slusne  # shared archive rate limiter
+
 import html, http.cookiejar, json, re, sys, time, urllib.parse, urllib.request
 for _s in (sys.stdout, sys.stderr):   # UTF-8 výstup i na Windows bez -X utf8 (cp1250 neumí třeba „→“)
     if hasattr(_s, "reconfigure"):

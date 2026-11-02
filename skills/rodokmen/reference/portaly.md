@@ -35,6 +35,8 @@ nebo se změnil (CHYBA) – pak je třeba opravit nástroj i tento návod. Pro p
   (úroveň 1 = poloviční rozlišení – stačí na orientaci; 0 = plné rozlišení – na čtení a výřez).
   Jen část stránky v plném rozlišení: `… <snímek> 0 pracovni/detail.jpg 0.0,0.4,1.0,0.7`.
 - **Odkaz na snímek** (pole `odkaz` v `zaznamy.json`): `python3 -I tools/aron_img.py <apu_id> link <snímek>`.
+  Odkazy z dřívějších verzí (id souboru PUBLISHED) otevřou knihu na prvním snímku – najde je
+  `aron_img.py odkazy`, opraví `aron_img.py odkazy --opravit` (v `data/`, pak znovu `npm run data`).
 - **Svazek do dat:** `python3 -I tools/aron_img.py <apu_id> svazek` (klíč = prvních 8 znaků apu_id → pole `svazek` v zápisu).
 - V ARON jsou i další fondy (sčítání lidu, některé gruntovní knihy, kroniky) – `aron_search.py "Obec" "název fondu"`.
 - Stejnojmenných obcí bývá víc (Vinice u Hořic × Vinice u Velké Jesenice). Výsledky jsou seřazené podle farnosti;
@@ -50,17 +52,22 @@ nebo se změnil (CHYBA) – pak je třeba opravit nástroj i tento návod. Pro p
 - `trebon.py misto "Obec"` → id místa. Diakritiku a mezery nástroj odstraní sám (portál zná jen „RatiborskeHory“).
   Portál vrátí vždy jen jedno místo – **zkontroluj vypsaný název a okres**: u stejnojmenných obcí jinou (Buk → Bukovka),
   u měst i okres nebo synagogu (Jindřichův Hradec → okres 1949–1960). Správné id pak najdi na portálu a pracuj s ním.
-  Malé osady portál jako místo nezná vůbec (Malá Chyška) – hledej farní nebo sousední obec (Chyšky) a osadu v popisu knih.
+  Název sídla farnosti sám neurčuje, které obce svazek pokrývá: porovnej popis a seznam obcí u konkrétní knihy,
+  případně její úvodní snímky. Malé osady portál jako místo nezná vůbec (Malá Chyška) – hledej farní nebo sousední
+  obec (Chyšky) a osadu v popisu knih.
   Občasná chyba 500 bývá výpadek portálu – nástroj zkouší znovu; když trvá, zkus to později.
 - `trebon.py svazky <id|"Obec">` → knihy místa (id knihy, druh, roky, obce).
 - `trebon.py rejstrik <id_knihy> <písmeno>` → **dobrovolnický jmenný rejstřík** knihy se snímkem, obrovská úspora.
-  Ne každá kniha ho má; prázdný výsledek = rejstřík chybí, ne „osoba tam není“.
+  Ne každá kniha ho má; prázdný výsledek nebo chybějící písmeno **nedokazuje, že osoba v matrice není**.
+  Rejstřík je pomůcka k nalezení zápisu, který pak ověř v samotné matrice.
 - `trebon.py snimek <id_knihy> <snímek> pracovni/x.jpg [nahled]`, `trebon.py svazek <id_knihy>` (do `svazky.json`).
 - Trvalý odkaz: `https://digi.ceskearchivy.cz/<id_knihy>/<snímek>`.
 - Některé fary mají knihy po vesnicích, které nejsou v seznamu svazků místa (Vacov → Žár) – hledej podle titulků knih fary.
 - **Civilní matriky (1920–1945) lidí bez vyznání** jsou v knihách okresních úřadů (např. Tábor, kniha 12304) a mají
   dobrovolnický rejstřík (`trebon.py rejstrik 12304 N`). Dobrá cesta, když farní matrika mlčí. V `svazky "Obec"`
   se neukážou (patří okresu, ne obci) – id knihy najdi na portálu.
+- U oddacích rejstříků zkus při neúspěchu hledat také pod příjmením ženicha; řazení se může lišit. Číslo folia
+  z rejstříku nepřeváděj pevným offsetem na snímek: najdi folio v knize a ověř okolní strany podle číslování a roku.
 
 ## SOA Plzeň (Porta fontium, portafontium.eu) – `tools/portafontium.py`, bez prohlížeče
 - `portafontium.py fara <fara>` → knihy fary: kniha | obce | roky a druhy (`*` N, `oo` O, `+` Z, `i` index) | popis.
@@ -76,6 +83,10 @@ nebo se změnil (CHYBA) – pak je třeba opravit nástroj i tento návod. Pro p
   požadavkem (IIIF), `nahled` = 1/4. Číslo snímku = pořadí náhledu v prohlížeči; soubory nesou číslo folia
   (`dolni-bela-17_0951` = fol. 95), takže u knih se souvislou foliací je **snímek ≈ folio**.
 - `link <kniha> <snímek>` → trvalý odkaz, `svazek <kniha>` → `svazky.json` (klíč `pf_<kniha>`).
+- Zaniklé obce (Slavkovský les, Doupovsko, pohraničí): stejné jméno má často víc vsí (Schönlind = Krásná Lípa u Kraslic
+  i zaniklá Krásná Lípa u Sokolova). Rozhodne sousední obec z rodinných údajů a fara: např. Schönlind ve Slavkovském lese
+  → fara Kostelní Bříza (`kostelni-briza`), Perlsberg/Lazy a Rockendorf/Žitná → fara Smrkovec (`smrkovec`). Svatby hledej
+  i ve faře nevěsty (sousední fara), oddací rejstříky jsou v knihách `…ooi`.
 - Bez prohlížečového User-Agentu portál vrací 403 (nástroj ho posílá). Jmenné hledání portál nemá – indexy jsou jen uvnitř knih
   (`*i`, `ooi`, `+i` v seznamu knih fary).
 
@@ -87,6 +98,8 @@ nebo se změnil (CHYBA) – pak je třeba opravit nástroj i tento návod. Pro p
   dané vsi (číslo strany je nahoře na snímku). Takové knihy bývají řazené po vsích, ne chronologicky – je-li rejstřík,
   začni jím.
 - `ebadatelna.py snimek <matrikaId> <snímek> pracovni/x.jpg [nahled] [x0,y0,x1,y1]`; `link`, `svazek` (klíč `ebad_<id>`).
+- Při přechodné chybě nástroj vypíše, že čeká na další pokus; konečné nedostupnosti odpovídá chybové hlášení,
+  nikoli prázdný výsledek hledání.
 - **Archiválie** (urbáře, gruntovní a pozemkové knihy velkostatků – most přes 17. století): `a-info <archivalieId>`,
   `a-snimek`, `a-link`, `a-svazek` (klíč `ebad_a_<id>`). Archiválii nástroj nehledá – najdi ji na portálu v prohlížeči;
   id je v adrese `…/pages/ArchivaliePage/archivalieId/<id>`.
@@ -115,42 +128,21 @@ nebo se změnil (CHYBA) – pak je třeba opravit nástroj i tento návod. Pro p
   a snímek stáhni `soal_zoomify.py <cesta> 0 pracovni/x.jpg`.
 
 ## ZA Opava (severní Morava, Slezsko, Olomoucko, Litovelsko) – `tools/soal_zoomify.py`
-- Ověřeno v říjnu 2026: `digi.archives.cz` vrací jen kontrolní stránku Radware („Radware Page“, cookies `__uzm*`) – bez JavaScriptu se
-  k hledání nedostaneš. **Ochranu neobcházej**; hotový nástroj pro hledání tu proto není (jen stahování snímků).
-- **Co ZA Opava pokrývá** (podle její zprávy o činnosti za 2025; sídlo Opava, pobočka Olomouc): bývalý Severomoravský kraj, tedy státní okresní archivy
-  **Bruntál, Frýdek-Místek, Jeseník, Karviná, Nový Jičín, Olomouc, Opava, Prostějov, Přerov a Šumperk**. Obce na Litovelsku a Olomoucku patří pod **ZA Opava**, ne pod MZA Brno.
-  Např. Vrbno pod Pradědem (okres Bruntál, německy Würbenthal) je tedy v Opavě.
-- **Valašsko** (Vsetín, Valašské Meziříčí, Rožnov, Krhová) leží v olomoucké arcidiecézi; farní matriky olomoucké arcidiecéze drží **ZA Opava** a FamilySearch uvádí
-  jako původ snímků matrik Valašského Meziříčí právě Opavu. Okresní archiv Vsetín (úřední spisy) je ale pod Moravským zemským archivem (není v seznamu okresních archivů
-  ZA Opava) a v Acta Publica (`mza.py`) Valašsko při zkoušce v říjnu 2026 není (část Zlínska tam je, např. Zlín-Malenovice). **Matriky Valašska tedy hledej nejdřív v Opavě**
-  (digi.archives.cz) a spisy ve SOkA Vsetín; hranici si ověř u konkrétní farnosti v seznamu původců obou archivů.
-- **Bez prohlížeče to nejde.** Badatelna `https://digi.archives.cz/da/` (stará adresa matriky.archives.cz jen přesměruje)
-  má ochranu proti robotům – curl ani WebFetch se nedostanou ani na hledání. Potřebuješ připojený prohlížeč (Claude in
-  Chrome – uživatel ho připojí příkazem `/chrome` – nebo Playwright); jinak ať knihu najde a snímky uloží uživatel.
-  Úvodní ověření projde samo, ale hledání často skončí **CAPTCHou: tu vyřeší uživatel** v okně prohlížeče, ty nikdy.
-- Hledej obec a vyfiltruj Matriky (ikona, potom znovu lupa). Hledání vrací i civilní matriky (u obce stovky svazků) –
-  filtr „Datum od – do“ (podle začátku svazku, např. 1680–1873) nechá jen církevní. Knihy bývají řazené po obcích
-  a na konci mají rejstřík. Vedle farních knih bývají i **druhopisy** („T“ v signatuře, viz `matriky.md`).
-- **Seznam svazků a ID snímků si hned ulož** do `pracovni/<svazek>/` – relace po pár hodinách vyprší a výsledky
-  hledání platí jen v ní. Na detailu svazku: entita `document.querySelector('[entityuuid]').getAttribute('entityuuid')`
-  (u svazků uložených v jiném archivu nemá tvar UUID – nehledej ji regexem), ID snímků jsou hodnoty
-  `select.getScanSelect option` (tvar „N%20uuid“). Snímek pak otevřeš kdykoli bez hledání:
-  `/da/showZoomifySeparate?imageNumberSeparate=N&myEntityUuid=<entita>&myImageUuid=<uuid>`.
-- Adresa obrázku: `fetch('/da/showZoomify/<id svazku z URL>/<část option.value za „%20“>')` vrátí HTML s cestou
-  `…/images/<složka>/<uuid>.jpg`. Cesta se u svazků liší (`…/CZ-217000010/NAD-165/dao/images/…`, `…/zao/matriky/dao/images/…`)
-  a přípona bývá i `.JPG` – nástroji dej vždy **celou adresu z HTML**:
-  `python3 -I tools/soal_zoomify.py "<adresa>" 2 pracovni/x.jpg` (2 = čtvrtinové rozlišení na orientaci podle záhlaví
-  stránek, 0 = plné jen u nalezeného zápisu). Obrázkový server images.archives.cz neomezuje a cookies nepotřebuje.
-- **POZOR na blokování** (jen stránky aplikace, obrázky ne): rychlé dotazy → CAPTCHA, „operace vyhodnoceny jako
-  nestandardní“ nebo „Access blocked“ na 30 minut; po desítkách dotazů za den vrací showZoomify „Server Exception“
-  (denní limit – pokračuj až další den). Pauza 3–6 s mezi stránkami, dávky do ~80 stránek, žádné rychlé `fetch` hned
-  po hledání a stránky výsledků neprocházej za sebou. Delší smyčku pusť v prohlížeči na pozadí, výsledky ukládej do
-  `window` nebo `localStorage` a vyzvedávej po částech (nástroj pro JavaScript má limit asi 45 s). Pomocníkům to napiš do zadání.
+- Pozor na hranici: obce na Litovelsku a Olomoucku patří pod **ZA Opava**, ne pod MZA Brno.
+- Portál `https://digi.archives.cz/da/` zobrazuj běžným způsobem v prohlížeči. Pokud žádá ověření nebo CAPTCHA,
+  vyřeší ji uživatel; neobcházej ochranu a nepokračuj automatizovanými požadavky.
+- Katalogová obec sama o sobě nedokládá, že je online příslušná matrika ani že pokrývá hledanou dobu. Ověř konkrétní
+  svazek a jeho popis v portálu.
+- `soal_zoomify.py` umí zpracovat celou adresu `https://` obrázku na serveru archivu. Použij přesnou adresu
+  konkrétního snímku, pokud ji portál zpřístupní; URL neskládej ani neodvozuj z jiné stránky či snímku.
+  Úroveň `2` je pro orientaci, `0` pro čtení nalezeného zápisu. Snímky otevírej jednotlivě; žádné hromadné stahování
+  ani obcházení chyb 403, limitů nebo jiných ochran.
+- Hledej obec a vyfiltruj Matriky. Ověř popis svazku a rozsah let; vedle farních knih mohou být i druhopisy (viz `matriky.md`).
 
 ## MZA Brno (jižní Morava, Acta Publica) – `tools/mza.py`, bez prohlížeče
-- Portál `https://www.mza.cz/actapublica/` je veřejný, bez přihlášení a bez ochrany proti robotům. Adresa actapublica.eu
+- Portál `https://www.mza.cz/actapublica/` je veřejný a bez přihlášení. Adresa actapublica.eu
   bývá za Cloudflare zablokovaná („Sorry, you have been blocked“ – podle IP, i v běžném prohlížeči); nástroj ji nepoužívá.
-  Když nejde ani mza.cz, ať uživatel vypne VPN nebo zkusí jinou síť.
+  Pokud je portál nedostupný nebo blokuje, zkus to později nebo se obrať na archiv.
 - `mza.py hledat "Obec" [slovo…]` → knihy: `id | č. knihy | původce (typ) | N | O | Z | obcí | snímků`. Hledá v českém, německém
   i historickém jménu obce („Auspitz“ = Hustopeče). Další slovo výsledek zúží: čtyřmístné číslo = rok uvnitř rozsahu N/O/Z
   (`hledat Hustopeče 1850`), jiné slovo = text v řádku (farnost, sousední obec). U častých jmen („Lhota“ přes 600 knih) vždy
@@ -167,6 +159,14 @@ nebo se změnil (CHYBA) – pak je třeba opravit nástroj i tento návod. Pro p
   a číslo snímku použiješ v `snimek`. Knihy bývají po farnostech a letech, indexy jsou v poli rejstříku u N/O/Z.
 - `snimek` potřebuje ImageMagick (`magick`) a `curl`; hledání, `info`, `link` a `svazek` ne. Pomocníkům to napiš do zadání.
 - Ber ohled na server: stahuj jen snímky, které čteš (podmínky užití na portálu).
+
+- Když stažení selže a portál umožňuje běžné zobrazení, čti přímo v prohlížeči: prohlížeč na celou obrazovku (tlačítko vpravo), lupa + dvakrát, pak
+  kolečko myši nad místem zápisu (zvětšuje kolem kurzoru); velké tažení viewer resetuje, malé posuny fungují. Pole „Snímek“
+  skáče přímo. **Rejstříky** (oddaní ~1890–1949) bývají na konci knihy a uvádějí stránku – stránka ≠ snímek, dohledej
+  podle hlaviček. Sňatek bývá ve farnosti nevěsty. Výřez do dat = snímek obrazovky (odkaz na snímek knihy do `odkaz`).
+  Čtení jednoho zápisu je ~10 kroků – MZA nečti pomocníky souběžně (jeden prohlížeč).
+- Poznámky o DZI/JSON a lokálním browser bridge jsou pouze výzkumný nápad, ne ověřené stabilní rozhraní.
+  Neimplementuj na jejich základě downloader, bridge ani automatizaci; před případnou změnou ověř oficiální rozhraní.
 
 ## Po válce přistěhovaní, reemigranti, přesídlení (osídlování pohraničí 1945–1950)
 Ověřené (2026-10): v Národním archivu je fond **Ministerstvo práce a sociální péče, Praha** (NAD 1028), inv. č. 655, sign. 3521: „Reemigrace – čs. reemigrační mise ve Vídni,
@@ -267,7 +267,7 @@ kde matriky hledat.
   Matricula nehledá podle obce ani jména – znáš-li farnost (z úmrtí, sňatku, od rodiny), ušetří to hodně času. **Obrázky ale chrání token počítaný
   JavaScriptem prohlížeče; nástroj ho nenapodobuje.** Snímek stáhne `node tools/matricula_snimek.js <cesta-knihy> <snímek> pracovni/x.jpg`: otevře knihu v pravém prohlížeči
   (Playwright: jednou `npm install playwright && npx playwright install chromium`), počká, až si stránka sama načte obrázek, a uloží ho (ověřeno na vídeňské knize, ~1,3 MB na snímek).
-  Hlídá, aby číslo snímku nepřesáhlo počet snímků knihy (prohlížeč jinak tiše dá poslední snímek). Stahuj jen to, co čteš. Bez Playwrightu: Claude in Chrome nebo ruční uložení.
+  Hlídá, aby číslo snímku nepřesáhlo počet snímků knihy (prohlížeč jinak tiše dá poslední snímek). Prohlížeč není řízen brzdou `slusne.py`: stahuj jen to, co čteš, a při blokaci nebo chybě nepokračuj. Bez Playwrightu: Claude in Chrome nebo ruční uložení.
 - **Vídeň:** 567 farností pod `oesterreich/wien/<obvod>-<farnost>` (např. `01-am-hof`). Podle přednášky FamilySearch (2023) jsou oddací a úmrtní knihy
   online do 1938 a křty do 1922, mladší se postupně otevírají – ověř na portálu. Židovské matriky Vídně: Israelitische Kultusgemeinde a mikrofilmy ve
   Wiener Stadt- und Landesarchiv (WStLA). Bydliště před 1976: dotaz WStLA (online formulář). Hřbitovní databáze **friedhoefewien.at → Verstorbenensuche**
@@ -275,7 +275,7 @@ kde matriky hledat.
 - **Srbsko (Matricula):** část Banátu a Vojvodiny (např. `serbien/subotica`) – ověř, jestli je tam hledaná fara. **Polsko** (Slezsko, Opolsko) viz Geneteka níže.
 - Bez přihlášení. Seznam knih: `…/de/oesterreich/<diecéze>/<farnost>/?page=N`; snímek knihy `…/<id>/?pg=<snímek>`
   (zároveň trvalý odkaz).
-- URL obrázku obsahuje `csrf` a `ctrl` počítané JavaScriptem → je potřeba prohlížeč (Playwright / Claude in Chrome):
+- URL obrázku obsahuje `csrf` a `ctrl` počítané JavaScriptem → je potřeba prohlížeč (Playwright / Claude in Chrome, v Cursoru prohlížeč agenta):
   otevři knihu, klikni na stránku (`.docview-pagelink`), URL obrázku vezmi z `performance.getEntriesByType('resource')`
   a stáhni `bash tools/matricula_dl.sh "<url>" pracovni/x.jpg`. Víc stránek: soubor řádků „<snímek> <url>“ → `matricula_batch.sh`.
 - Rejstřík najdeš bez prohlížeče: HTML stránky knihy má seznam `labels` s popisky snímků („04-Index Taufe_0001“).
@@ -347,7 +347,7 @@ A když osoba „chybí“ v očekávaných matrikách (stěhovala se se službo
 
 ## Ostatní portály – obecný postup
 Nástroje pro ně hotové nejsou. Postupuj takto a výsledek zapiš do `STAV.md`, ať to příště víš:
-1. Otevři portál v prohlížeči (Claude in Chrome / Playwright, pokud jsou k dispozici; jinak požádej uživatele).
+1. Otevři portál v prohlížeči (Claude in Chrome / prohlížeč v Cursoru / Playwright, pokud jsou k dispozici; jinak požádej uživatele).
    Najdi fond „Sbírka matrik“ / „Matriky“ a svazek podle obce a let.
 2. **Snímek:** většina prohlížečů má tlačítko ke stažení obrázku – ulož do `pracovni/`. Když ne, podívej se v síťovém
    provozu, odkud se načítají dlaždice/obrázky (IIIF, DeepZoom, Zoomify), a stáhni celý obrázek touto cestou – jednotlivě,
@@ -366,6 +366,29 @@ Nástroje pro ně hotové nejsou. Postupuj takto a výsledek zapiš do `STAV.md`
 - **Berní rula 1654** – jen hospodáři s půdou; edice a rejstříky v knihovnách (Kramerius/DNNT).
 - **Gruntovní (pozemkové) knihy** – převody domů z otce na syna; online jen část (SOA Plzeň téměř vše, SOA Praha část,
   ostatní spíš badatelna). Fond „Velkostatek <panství>“.
+- **Další písemnosti vrchnosti (fond „Velkostatek <panství>“, do 1850)** – když matrika nestačí (původ přistěhovalce,
+  vojáka, chybějící rodiče): soupisy poddaných (po letech, celé domácnosti s věkem), knihy svatebních smluv a kontraktů,
+  sirotčí knihy a pozůstalostní spisy (dědici, jejich věk a bydliště), protokoly invalidů a propuštěných vojáků,
+  výhostní (propouštěcí) listy, urbáře. Postup: najdi panství z matričního zápisu („poddaný panství X“) → kartu fondu
+  v katalogu archivu (ARON / Digitální badatelna) → inventář otevři jako strom. Fond bývá i v **jiném** archivu než
+  matriky; „Index ne“ v katalogu neznamená, že kniha nemá místní rejstřík (zkus začátek i konec knihy). Karta bez
+  skenů neznamená, že kniha neexistuje → zapiš do `archivni_dotazy.md`. Stopu na vrchnostenský soud dávají i výzvy
+  dědicům v novinách (ANNO, Prager Zeitung: „Edikt … Herrschaft X“).
+- **Zemské desky** (Národní archiv; Morava MZA Brno) – evidence **deskových statků**: šlechta, svobodníci, majitelé
+  deskových dvorů a některá města. Pro poddané sedláky a chalupníky v nich nic nebude (ti jsou v gruntovních knihách).
+  Vyplatí se jen u předka-svobodníka nebo majitele statku; středověké a raně novověké zápisy částečně jako edice
+  v Czech Medieval Sources (sources.cms.flu.cas.cz, kategorie „Desky zemské“). Originály jen v badatelně.
+- **Mlýny a mlynáři – vodnimlyny.cz** (pozor: `databaze.vodnimlyny.cz` neexistuje, databáze je na
+  `www.vodnimlyny.cz/mlyny/objekty/`). Karta mlýna má sekci **Historie** s držiteli mlýna v chronologickém sledu
+  (často z gruntovních knih, urbářů, katastrů), prameny a fotky. Vyplatí se, když je předek mlynář nebo se narodil
+  „ve mlýně“ / v čp. mlýna: potvrdí rod na mlýně přes generace, dá příběh a obrázky na web. Hledá se podle obce,
+  katastru, toku i jména mlynáře (pole jsou dobrovolně vyplněná – „nenalezeno“ nic nedokazuje). Bez prohlížeče:
+  GET `/mlyny/objekty/` (cookies), pak POST tamtéž s hlavičkou `X-Requested-With: XMLHttpRequest` a poli
+  `_do=filter-form-submit`, `city=<Obec>` (nebo `miller=<Příjmení>`), `send=Filtrovat` → JSON, výsledky v
+  `snippets["snippet--items"]` (bez té hlavičky vrátí nefiltrovaný seznam); přesný název obce dá
+  `?do=citySuggestions&q=<Obec>`. Stránky „Prameny k poznávání vodních mlýnů“ na témže webu popisují, kde hledat dál
+  (soupis mlýnů 1704, vodní knihy, kroniky mlynářských rodů). Údaje z karty ber jako odkaz na pramen, ne jako doklad –
+  předka ověř v matrice / gruntovní knize.
 - **Mapy stabilního katastru (1824–43)** – kde stál dům s číslem popisným: archivnimapy.cuzk.cz (Archiv ČÚZK).
   Na **císařských otiscích** chybí u části listů barvy a čísla domů. Lepší jsou **indikační skici**: mají čísla domů
   a u pozemků jméno majitele („N. 13“ = patří k domu čp. 13). Dům bez pozemků mimo ves = domkář bez polí.

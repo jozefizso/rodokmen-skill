@@ -21,6 +21,8 @@ POZOR: shoda jména není ztotožnění. Jména se píší i s chybami (Novák/N
 a v rodině. Údaje o obětech jsou citlivé – na web jen se souhlasem rodiny (soukromi.md). Podmínky užití sbírky jsou na
 https://arolsen-archives.org (údaje jen pro osobní, vědecké a genealogické účely). Neprocházej databázi hromadně.
 """
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__))); import slusne  # shared archive rate limiter
+
 import http.cookiejar, json, os, random, re, string, sys, time, urllib.parse, urllib.request
 for _s in (sys.stdout, sys.stderr):   # UTF-8 výstup i na Windows bez -X utf8 (cp1250 neumí třeba „→“)
     if hasattr(_s, "reconfigure"):

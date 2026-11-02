@@ -20,6 +20,8 @@ Použití (z kořene projektu):
 <snímek> je pořadí snímku v knize od 1 (stejné číslo je v prohlížeči v poli „snímek“).
 Ber ohled na server: stahuj jen snímky, které čteš. Podmínky užití: https://www.mza.cz/actapublica/page/view/podminky-uziti-sluzeb
 """
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__))); import slusne  # shared archive rate limiter
+
 import concurrent.futures as cf
 import html, http.cookiejar, json, math, os, re, shutil, subprocess, sys, tempfile, time, unicodedata, urllib.parse, urllib.request
 for _s in (sys.stdout, sys.stderr):   # UTF-8 výstup i na Windows bez -X utf8 (cp1250 neumí třeba „→“)
@@ -57,17 +59,11 @@ def curl_get(url):
     c = shutil.which("curl") or shutil.which("curl.exe")
     if not c:
         sys.exit("Chybí příkaz curl (obrázky MZA vyžadují HTTP/2). Windows 10+ a macOS ho mají; jinak ho nainstaluj.")
-    err = ""
-    for attempt in range(4):
-        r = subprocess.run([c, "-sS", "-m", "90", "-A", "Mozilla/5.0 (rodokmen)", "-w", "%{http_code}", url], capture_output=True)
-        kod = r.stdout[-3:].decode("ascii", "replace")   # stavový kód připsaný curl za tělo odpovědi
-        if r.returncode == 0 and kod == "200":
-            return r.stdout[:-3]
-        err = r.stderr.decode("utf-8", "replace").strip() or f"HTTP {kod}"
-        if kod in ("403", "404"):   # trvalá chyba, opakování nepomůže
-            break
-        time.sleep(2 * (attempt + 1))
-    sys.exit(f"Stažení selhalo: {url}\n{err}")
+    # The shared limiter wraps curl and handles HTTP rejection and connection failures.
+    r = subprocess.run([c, "-sS", "--fail", "-m", "90", "-A", "Mozilla/5.0 (rodokmen)", url], capture_output=True)
+    if r.returncode:
+        sys.exit(r.returncode if r.returncode == slusne.KOD else f"Stažení selhalo: {url}\n{r.stderr.decode('utf-8', 'replace').strip()}")
+    return r.stdout
 
 
 def text(s):
