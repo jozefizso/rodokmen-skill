@@ -1,4 +1,4 @@
-# Rodokmen – skill pro Claude Code
+# Rodokmen – skill pro Claude Code, Codex a OMP
 
 ![Rodokmen z matrik a rodinný web – vějíř předků, mapa a zajímavosti](docs/banner.jpg)
 
@@ -47,10 +47,10 @@ mapu, kde předci žili, osm rodů a vějíř předků. Další stránky: rodokm
 s přepisem a překladem, „Co hledáme“ a deník hledání. **[Podívejte se na celou úvodní stránku ukázky →](docs/ukazka-web.png)**
 
 ## Co budete potřebovat
-- **Claude Code** (aplikace pro Mac/Windows nebo příkazová řádka) a placené předplatné Claude. Rodokmen je
-  dlouhá práce – počítejte s několika večery a s tím, že spotřebuje dost kreditů. Nejlevnější tarif **Pro bude
-  nejspíš málo** (stačí na vyzkoušení), na celý rodokmen počítejte aspoň s nejnižším tarifem **Max**.
-  Po dokončení můžete předplatné zase snížit nebo zrušit, web i data vám zůstanou.
+- **Claude Code** (aplikace pro Mac/Windows nebo příkazová řádka) a placené předplatné Claude, nebo
+  **Codex** (OpenAI), nebo **[OMP (Oh My Pi)](https://github.com/can1357/oh-my-pi)** se stejně silným modelem. Rodokmen je
+  dlouhá práce – počítejte s několika večery a spotřebou kreditů podle zvoleného nástroje a modelu.
+  Web i data zůstanou ve vašem projektu.
 - **Počítač s macOS nebo Windows** (obojí vyzkoušeno; Windows 11 s Pythonem z python.org a Git Bashem).
   Linux by měl fungovat, ale vyzkoušený není.
 - Programy **Python 3, Node.js, ImageMagick a git**. Nemusíte je instalovat předem – Claude zkontroluje, co chybí,
@@ -66,14 +66,16 @@ vyzkoušený.
 - Vyzkoušeno na několika skutečných rodokmenech (největší má 243 předků v 11 generacích a 192 matričních zápisů).
   Výsledek se porovnával s větví, kterou jsme léta dělali ručně.
 
-S jiným nebo slabším modelem počítejte s víc chybami ve čtení starého písma.
+S jiným nebo slabším modelem počítejte s víc chybami ve čtení starého písma. V Codexu (GPT-6.1 Sol) se skill zkoušel
+na jednom skutečném rozpracovaném rodokmenu: navázal na práci, našel a zapsal nové zápisy. Celý rodokmen s ním zatím
+nevznikl a jeho čtení nikdo nesrovnal s ručním přepisem.
 
 ## Instalace
 
-### Varianta A – jako plugin (doporučeno)
+### Varianta A – jako plugin v Claude Code (doporučeno)
 V Claude Code napište:
 ```
-/plugin marketplace add sarsonj/rodokmen-skill
+/plugin marketplace add jozefizso/rodokmen-skill
 /plugin install rodokmen@rodokmen-skill
 ```
 Pak Claude Code restartujte (do běžící relace se nový plugin nenačte).
@@ -90,27 +92,54 @@ Pak Claude Code restartujte (do běžící relace se nový plugin nenačte).
 Po aktualizaci Claude Code restartujte. Rozpracovaný projekt pak Claude při další práci sám nabídne aktualizovat
 na novou verzi (vaše data zůstanou, změněné soubory webu zazálohuje do `pracovni/`).
 
-### Varianta B – ručně
+### Varianta B – jako plugin v Codexu
+V terminálu:
+```
+codex plugin marketplace add jozefizso/rodokmen-skill
+codex plugin add rodokmen@rodokmen-skill
+```
+Aktualizace později: `codex plugin marketplace upgrade rodokmen-skill` (kdyby `codex plugin list` ukazoval starou verzi,
+pak ještě `codex plugin add rodokmen@rodokmen-skill`). Rozpracovaný projekt pak agent sám nabídne aktualizovat,
+stejně jako v Claude Code.
+
+Přístup k síti a schvalování závisí na nastavení Codexu a prostředí. Pokud nástroje nedosáhnou na archiv,
+zkontrolujte oprávnění a [nastavení sandboxu](https://developers.openai.com/codex/config-reference).
+Změnu přístupu k síti provádějte jen tehdy, když ji pro svůj projekt chcete povolit.
+
+### Varianta C – jako plugin v OMP
+V terminálu:
+```
+omp plugin marketplace add jozefizso/rodokmen-skill
+omp plugin install rodokmen@rodokmen-skill
+```
+(nebo uvnitř OMP `/marketplace add jozefizso/rodokmen-skill`, `/marketplace install rodokmen@rodokmen-skill`
+a pak `/reload-plugins`).
+Aktualizace později: `omp plugin marketplace update rodokmen-skill && omp plugin upgrade rodokmen@rodokmen-skill`.
+Rozpracovaný projekt pak agent sám nabídne aktualizovat, stejně jako v Claude Code.
+
+### Varianta D – ručně
 Stáhněte repozitář (zelené tlačítko **Code → Download ZIP** na GitHubu, nebo `git clone`) a zkopírujte složku
 `skills/rodokmen` do `~/.claude/skills/` (na Windows `C:\Users\<jméno>\.claude\skills\`). Výsledek:
-`~/.claude/skills/rodokmen/SKILL.md`.
+`~/.claude/skills/rodokmen/SKILL.md`. Pro Codex ji zkopírujte do `~/.agents/skills/`
+(výsledek `~/.agents/skills/rodokmen/SKILL.md`), pro OMP do `~/.omp/agent/skills/`
+(výsledek `~/.omp/agent/skills/rodokmen/SKILL.md`).
 
-Pak Claude Code restartujte.
+Pak Claude Code (nebo Codex, OMP) restartujte.
 
 V **Cursoru** složku `skills/rodokmen` zkopírujte do `~/.cursor/skills/rodokmen/` (na Windows `C:\Users\<jméno>\.cursor\skills\rodokmen\`).
 Přes Customize → From GitHub Repository to nejde: ten postup chce `.cursor-plugin/marketplace.json` a tento repozitář má manifest pro Claude Code.
 Podrobnosti jsou v `skills/rodokmen/reference/cursor.md`.
 
 ## První spuštění
-1. Spusťte Claude Code (klidně v domovské složce) a napište třeba:
+1. Spusťte Claude Code, Codex, Cursor nebo OMP a napište třeba:
    > Chci udělat rodokmen své rodiny.
 
-   nebo přímo `/rodokmen`.
-2. Claude zkontroluje programy, založí složku projektu (např. `~/Rodokmen`) a začne se ptát na rodinu.
+   nebo přímo `/rodokmen` (v Codexu napište `$` a vyberte rodokmen ze seznamu, v OMP `/skill:rodokmen`).
+2. Agent zkontroluje programy, založí složku projektu (např. `~/Rodokmen`) a začne se ptát na rodinu.
    Připravte si, co víte o rodičích, prarodičích a pradědečcích, a rodinné dokumenty (rodné a oddací listy, parte,
    fotky, kroniky) – stačí vyfotit mobilem.
 3. **Příště otevírejte Claude Code přímo ve složce projektu** (`cd ~/Rodokmen && claude`, nebo v aplikaci
-   vyberte tuto složku). Claude si přečte, kde jste skončili, a naváže.
+   vyberte tuto složku; v Codexu `cd ~/Rodokmen && codex`, v OMP `cd ~/Rodokmen && omp`). Agent si přečte, kde jste skončili, a naváže.
 
 Chcete nejdřív vidět, jak web vypadá? Řekněte: *„Ukaž mi ukázkový web.“* Claude založí ukázkový projekt
 s vymyšlenou rodinou a spustí náhled.
@@ -136,7 +165,7 @@ skills/rodokmen/
                      metodická příručka (playbook, anglicky)
   tools/             nástroje v Pythonu (ARON, výřezy, rámečky, mapa, kontrola dat, export do webu, vějíř)
   template/          šablona projektu: prázdná data, ukázková rodina, web (Astro)
-.claude-plugin/      instalace jako plugin
+.claude-plugin/      instalace jako plugin (Claude Code, Codex i OMP)
 ```
 
 ## Co umí a co ne
@@ -202,6 +231,7 @@ tady v repozitáři.
   a souřadnice obcí) a při instalaci webu registr npm.
   Na Netlify jen tehdy, když web sami zveřejníte. Nikam jinam nic neposílají, ani vaše data, ani poznámky.
 - **Doporučení:** nechte v Claude Code zapnuté schvalování příkazů, aspoň dokud si nezvyknete, co Claude dělá.
+  V OMP ho zapnete spuštěním `omp --approval-mode always-ask` (nebo trvale `tools.approvalMode` v nastavení).
   Obecně instalujte skilly a pluginy jen od lidí, kterým věříte. Skill nikdo předem nekontroluje a Claude se
   jeho návodem řídí.
 
