@@ -9,8 +9,7 @@ Použití: python3 <skill>/tools/novy_projekt.py <cílová složka> [--ukazka] [
 Vytvoří: data/ (prázdné kostry nebo ukázka), web/ (Astro web), tools/ (kopie nástrojů),
 vyrezy/, zdroje/, dokumenty/, pracovni/, CLAUDE.md a AGENTS.md (stejný text, jeden zdroj pravdy je CLAUDE.md),
 .gitignore, .gitattributes (konce řádků LF i na Windows) a .claude/launch.json (náhled v Claude desktop).
-vyrezy/, zdroje/, dokumenty/, pracovni/, CLAUDE.md, .gitignore, .gitattributes (konce řádků LF i na Windows)
-a .claude/launch.json (náhled v Claude desktop). Do .claude/settings.json doplní zákaz přímého curl/wget
+Do .claude/settings.json doplní zákaz přímého curl/wget
 (stahování z archivů jde přes brzdu tools/slusne.py); ostatní nastavení v souboru nechá beze změny.
 
 Existující data nepřepisuje.
