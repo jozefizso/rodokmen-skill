@@ -97,6 +97,10 @@ Adresy u nevyzkoušených portálů ověř při prvním použití (portály se m
   požadavkem (IIIF), `nahled` = 1/4. Číslo snímku = pořadí náhledu v prohlížeči; soubory nesou číslo folia
   (`dolni-bela-17_0951` = fol. 95), takže u knih se souvislou foliací je **snímek ≈ folio**.
 - `link <kniha> <snímek>` → trvalý odkaz, `svazek <kniha>` → `svazky.json` (klíč `pf_<kniha>`).
+- Zaniklé obce (Slavkovský les, Doupovsko, pohraničí): stejné jméno má často víc vsí (Schönlind = Krásná Lípa u Kraslic
+  i zaniklá Krásná Lípa u Sokolova). Rozhodne sousední obec z rodinných údajů a fara: např. Schönlind ve Slavkovském lese
+  → fara Kostelní Bříza (`kostelni-briza`), Perlsberg/Lazy a Rockendorf/Žitná → fara Smrkovec (`smrkovec`). Svatby hledej
+  i ve faře nevěsty (sousední fara), oddací rejstříky jsou v knihách `…ooi`.
 - Bez prohlížečového User-Agentu portál vrací 403 (nástroj ho posílá). Jmenné hledání portál nemá – indexy jsou jen uvnitř knih
   (`*i`, `ooi`, `+i` v seznamu knih fary).
 
@@ -188,6 +192,7 @@ Adresy u nevyzkoušených portálů ověř při prvním použití (portály se m
 - Detail knihy má „Části matriky“ s rozsahy snímků (narození 1–43, index narozených 43–93, u knih pro víc obcí po obcích).
   Snímek s hledaným rokem odhadni (snímky ÷ roky). Rejstříky uvádějí stranu, ne snímek: přečti čísla stran na 1–2 snímcích
   a dopočítej (vztah bývá lineární, kniha od knihy jiný).
+  Pole „Snímek“ v prohlížeči skáče přímo na zadaný snímek. Sňatek bývá ve farnosti nevěsty.
 - **Listuj v otevřené stránce** (`viewer.goToPage(n-1)`, šipky) – návrat na už zobrazený snímek jde z mezipaměti
   prohlížeče a MZA nic nestojí. Stránku neobnovuj a adresu snímku znovu neotvírej: nové načtení dostane nový token
   a stáhne všechny dlaždice znovu.
