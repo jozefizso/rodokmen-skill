@@ -47,7 +47,7 @@ Mladší knihy jsou na matričním úřadě obce s rozšířenou působností / 
    Nedaří se? Ve křtu dítěte bývá (Praha ~1880–1890) připsané datum a místo sňatku rodičů – ověř ho v oddaných.
 7. **Rodina v katolické matrice chybí? Zkus evangelickou nebo židovskou.** Po toleranci (1781) vedly vlastní matriky
    evangelické sbory (a. v. i h. v.), jeden sbor pokrýval desítky obcí; v ARONu mají signatury „R …“ a `aron_search.py`
-   je najde podle obce. Ve východních Čechách časté (Rychnovsko, Dobrušsko, Opočensko). Židovské matriky viz `portaly.md`.
+   je najde podle obce. Ve východních Čechách časté (Rychnovsko, Dobrušsko, Opočensko). Židovské matriky (Národní archiv, nástroj `vademecum.py`) viz `portaly.md`.
    Ve 20. století (1920–1945) zkus i **civilní matriky** lidí bez vyznání u okresních úřadů (vyzkoušeno v SOA Třeboň, viz `portaly.md`).
    **Smíšená manželství:** od roku 1868 šli synové po otci a dcery po matce, pokud se rodiče nedohodli jinak.
    Před rokem 1868 byly při katolickém otci katolické všechny děti. Dceru evangelíka a katoličky proto hledej
