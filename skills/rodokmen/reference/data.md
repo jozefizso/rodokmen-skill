@@ -105,8 +105,10 @@ Viz `web.md`.
   Web ji zobrazuje jako „Výzkumný deník“. První sloupec může mít číselné nebo textové ID (např. `BA-1`, `KA-1`,
   `STR-10`); při slučování deníků zachovej původní ID nebo je uprav tak, aby byla v celém výsledném deníku jedinečná.
 - `zajimavosti.md` – `## Nadpis` + text, odkazy `[Jméno](/osoba/<slug>/)`.
-- `pribeh.md` – „Příběh <hlavního rodu>“: frontmatter `title`, `lead` + kapitoly `##`; když soubor neexistuje,
-  položka menu se skryje. Jak psát: `pribehy.md`.
+- `pribeh.md` – původní jediný příběh: frontmatter `title`, `lead` + kapitoly `##`; pokud `data/pribehy/` neobsahuje
+  Markdown příběhy, zůstává stránka `/pribehy/` zachována. Více příběhů ukládej jako `data/pribehy/<slug>.md` s frontmatter
+  `title`, `lead` a číselným `rod` (8–15); web vytvoří rozcestník `/pribehy/` a stránky `/pribehy/<slug>/`.
+  Jak psát: `pribehy.md`.
 - Poznámky pro Clauda v markdownu piš jako `<!-- … -->` – na web nejdou.
 - `archivni_dotazy.md`, `udaje_od_rodiny.md` – volný text.
 
