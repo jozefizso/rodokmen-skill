@@ -6,6 +6,14 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
+## Nevydáno
+
+**Nové**
+- Nástroje pro SOA Litoměřice, židovské matriky Národního archivu a další genealogické a válečné databáze.
+  MZA Brno: `mza.py hledat` a `puvodce` najdou knihy, snímky se dál čtou v prohlížeči.
+- Navigace v Matricule a kontrola dostupnosti archivních nástrojů pomocí `smoke_test.py`.
+- Výřezy Zoomify stahují jen potřebné dlaždice; Python nástroje používají společnou brzdu proti přetížení archivů.
+
 ## 0.9.1 – 6. 11. 2026
 
 **Nové**
