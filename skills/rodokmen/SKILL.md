@@ -14,8 +14,9 @@ až k hezkému rodinnému webu. Ty děláš technickou práci (stahování sním
 uživatel dodává znalost rodiny, rozhoduje sporná místa a schvaluje, co jde ven.
 
 **Složka tohoto skillu** (dále „složka skillu“) je ta, ve které leží tento `SKILL.md`.
-V Claude Code ji systém při načtení ukáže jako „Base directory“. V Cursoru je to osobní skill
-`~/.cursor/skills/rodokmen` (kam ho dát a jak ho načte cloud agent: `reference/cursor.md`).
+V Claude Code ji systém při načtení ukáže jako „Base directory“, v Codexu jako cestu k `SKILL.md` v seznamu skillů.
+V Cursoru je to osobní skill `~/.cursor/skills/rodokmen` (viz `reference/cursor.md`); v OMP použij cestu uvedenou
+při načtení skillu nebo `realpath skill://rodokmen`.
 Najdeš v ní `tools/` (nástroje), `template/` (šablona projektu a webu) a `reference/` (podrobné návody – čti je, až je potřebuješ).
 
 ## Jak mluvit s uživatelem
@@ -91,7 +92,9 @@ Najdeš v ní `tools/` (nástroje), `template/` (šablona projektu a webu) a `re
    (`tools/hlidac_site.py`), který před každým příkazem zkontroluje, že stahování jde přes brzdu, a jinak ho zamítne.
    Sám nic nestahuje. Bez něj platí jen pravidla níže a zákaz přímého `curl`/`wget` v `.claude/settings.json`.
 3. V projektu `git init` a první uložení (git = historie změn, kdyby se něco pokazilo). Doporuč pokračovat
-   **z této složky**: v Claude Code (soubor `CLAUDE.md` zajistí, že příště navážeš) i v Cursoru (totéž dělá `AGENTS.md`).
+   **z této složky**: v Claude Code pomáhá navázat `CLAUDE.md`, v Codexu, Cursoru a OMP `AGENTS.md`.
+   Síťová a schvalovací pravidla se liší podle prostředí. Pokud síť není dostupná, vysvětli to uživateli a postupuj
+   podle aktuální konfigurace a pokynů prostředí; nastavení neměň bez jeho souhlasu.
 4. Vyplň v `data/STAV.md` sekci „Pro koho“ a v `data/web.json` název webu („Rodokmen Novákových“),
    jakmile znáš příjmení výchozí osoby (šablona je prázdná).
 
@@ -228,7 +231,7 @@ Ať zmíní i zjevně související výskyty (viz krok 6 výše). Výstupy pomoc
 na dvě čitelné poloviny), než ho zapíšeš jako `doc`. Uživateli to vysvětli správně: pomocníci nečtou hůř, je to stejný
 model. Jde o princip čtyř očí a pomocník nemá kontext (dvě rodiny stejného jména ve vsi, dva Janové na statku).
 Prohlížeč může mít najednou jen jeden pomocník, proto dávej přednost nástrojům bez prohlížeče.
-**Pomocníky spouštěj na levnějším modelu** (v Claude Code Agent s `model: "sonnet"`; v Cursoru stejně levnější model): hledání a první čtení zvládnou a stojí zlomek
+**Pomocníky spouštěj na levnějším modelu** (pokud je dané prostředí podporuje a dovoluje; vhodný model vyber podle jeho pravidel): hledání a první čtení zvládnou a stojí zlomek
 kreditů. Ověření na snímku a zápis do dat dělá hlavní model (ty). Uživateli to řekni, ať ví, proč kredity tolik neubývají.
 Osvědčilo se 3–4 pomocníci na různé větve a archivy současně, jedno kolo ≈ 15–25 nových předků.
 Pomocníci stojí hodně kreditů – před velkým kolem řekni uživateli, co plánuješ a proč, a nech si to schválit.
