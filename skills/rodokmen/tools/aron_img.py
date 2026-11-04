@@ -4,22 +4,29 @@
 Použití:
   aron_img.py <apu_id> <snimek> [uroven] [vystup.jpg] [x0,y0,x1,y1]
       uroven: 0 = plné rozlišení, 1 = polovina (výchozí), 2 = čtvrtina
-      x0,y0,x1,y1: jen výřez (zlomky 0..1 celé stránky) – stahují se jen potřebné dlaždice
+      x0,y0,x1,y1: jen výřez (zlomky 0..1 celé stránky); u svazku bez ZIPu se stahují jen potřebné dlaždice
   aron_img.py <apu_id> info          -> název svazku a počet snímků
   aron_img.py <apu_id> link <n>      -> trvalý odkaz na snímek n v prohlížeči ARON (pole "odkaz" v zaznamy.json)
   aron_img.py <apu_id> svazek        -> zapíše svazek do data/svazky.json (klíč = prvních 8 znaků apu_id)
   aron_img.py odkazy [--opravit]     -> najde v data/ odkazy z dřívějšího `link`, které otevřou knihu na prvním
                                         snímku (id souboru PUBLISHED); s --opravit je přepíše na správný snímek (TILE)
 
-Popis svazků se ukládá do pracovni/.cache_aron/<apu_id>.json (ve složce projektu).
+Snímek se bere ze ZIPu „Stáhnout všechny snímky“ na storage.vychodoceskearchivy.cz: nástroj stáhne jen obsah ZIPu
+(asi 50 kB, jednou na svazek) a pak jen ten jeden snímek (1–2 MB), nikdy celý ZIP. Snímky v ZIPu mají asi 3/4 rozlišení
+dlaždic, na čtení to stačí. Dlaždicový server imgx.vychodoceskearchivy.cz odpovídá velmi pomalu nebo vůbec,
+proto se použije jen u svazku bez ZIPu (nebo když ZIP selže).
+
+Popis svazků a obsah ZIPu se ukládají do pracovni/.cache_aron/ (<apu_id>.json, <apu_id>.zip.json), snímek ze ZIPu
+do sdílené mezipaměti obrázků (tools/cache.py, aron/<apu_id>/sn<n>.jpg) – úroveň a výřez se pak dělají z disku.
 """
-import glob, json, math, os, re, shutil, ssl, subprocess, sys, tempfile, time, urllib.error, urllib.request
+import glob, json, math, os, re, shutil, ssl, struct, subprocess, sys, tempfile, time, urllib.error, urllib.request, zipfile, zlib
 import concurrent.futures as cf
 import xml.etree.ElementTree as ET
 import os as _os, sys as _sys; _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__))); import slusne  # noqa: E402 – brzda proti zablokování archivem (společný limit dotazů, tools/slusne.py)
 for _s in (sys.stdout, sys.stderr):   # UTF-8 výstup i na Windows bez -X utf8 (cp1250 neumí třeba „→“)
     if hasattr(_s, "reconfigure"):
         _s.reconfigure(encoding="utf-8", errors="replace")
+import cache  # noqa: E402 – sdílená mezipaměť obrázků (tools/cache.py): snímek ze ZIPu se stáhne jen jednou
 
 API = "https://aron.vychodoceskearchivy.cz/api/aron"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,10 +43,11 @@ def magick():
     return m
 
 
-def get(url, binary=False, tries=4):
+def get(url, binary=False, tries=2, headers=None, timeout=45):
+    # krátký limit a jen 2 pokusy: neodpovídající server (imgx) jinak zdržel nástroj přes 6 minut bez výpisu
     for attempt in range(tries):
         try:
-            with urllib.request.urlopen(url, timeout=90) as r:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=headers or {}), timeout=timeout) as r:
                 data = r.read()
             return data if binary else data.decode("utf-8")
         except OSError:
@@ -68,6 +76,119 @@ def tiles_by_order(vol):
             if f["type"] == "TILE":
                 out[f["order"]] = f["referencedFile"]
     return out
+
+
+def zip_url(vol):
+    """Odkaz „Stáhnout všechny snímky“ z popisu svazku (položka typu URL končící .zip), nebo None."""
+    for part in vol.get("parts", []):
+        for it in part.get("items", []):
+            if it.get("type") == "URL" and (it.get("href") or "").lower().endswith(".zip"):
+                return it["href"]
+    return None
+
+
+TAIL = 1 << 18   # 256 kB: obsah ZIPu se 500 snímky má asi 50 kB
+ZIP_HOST = "storage.vychodoceskearchivy.cz"
+
+
+class _RangeFile:
+    """Soubor na serveru čtený po kouscích (HTTP Range) – zipfile si z něj přečte jen obsah ZIPu."""
+    def __init__(self, url, size):
+        self.url, self.size, self.pos, self.tail = url, size, 0, None
+
+    def seekable(self):
+        return True
+
+    def tell(self):
+        return self.pos
+
+    def seek(self, off, whence=0):
+        self.pos = off if whence == 0 else self.pos + off if whence == 1 else self.size + off
+        return self.pos
+
+    def read(self, n=-1):
+        if n < 0 or self.pos + n > self.size:
+            n = self.size - self.pos
+        if n <= 0:
+            return b""
+        if self.pos >= self.size - TAIL:   # obsah ZIPu je na konci: stáhne se celý jedním dotazem a pak se čte z paměti
+            if self.tail is None:
+                self.tail = get(self.url, binary=True, headers={"Range": f"bytes={max(0, self.size - TAIL)}-"})
+                if len(self.tail) > TAIL:
+                    raise OSError("server nepodporuje čtení po částech (Range)")
+            start = self.pos - (self.size - len(self.tail))
+            data = self.tail[start:start + n]
+        else:
+            data = get(self.url, binary=True, headers={"Range": f"bytes={self.pos}-{self.pos + n - 1}"})
+            if len(data) != n:
+                raise OSError("server nepodporuje čtení po částech (Range)")
+        self.pos += len(data)
+        return data
+
+
+def zip_index(apu_id, url):
+    """{jméno souboru: [offset hlavičky, komprimovaná velikost, metoda]} – stáhne se jednou a uloží do CACHE."""
+    os.makedirs(CACHE, exist_ok=True)
+    path = os.path.join(CACHE, apu_id + ".zip.json")
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=45) as r:
+        size = int(r.headers["Content-Length"])
+    with zipfile.ZipFile(_RangeFile(url, size)) as z:
+        idx = {i.filename: [i.header_offset, i.compress_size, i.compress_type] for i in z.infolist()}
+    tmp = f"{path}.{os.getpid()}.tmp"
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(idx, f)
+    os.replace(tmp, path)
+    return idx
+
+
+def snimek_ze_zipu(vol, apu_id, n):
+    """Celý snímek n ze ZIPu svazku jedním dotazem Range, uložený ve sdílené mezipaměti. Vrací cestu k souboru."""
+    klic = f"aron/{apu_id}/sn{n:04d}.jpg"
+    src = cache.cesta(klic)
+    if os.path.exists(src):
+        cache._pouzito(src)
+        cache._zapocti(ZIP_HOST, os.path.getsize(src))
+        return src
+    url = zip_url(vol)
+    name = next(f["name"] for f in vol["digitalObjects"][0]["files"] if f["type"] == "PUBLISHED" and f["order"] == n)
+    idx = zip_index(apu_id, url)
+    if name not in idx:
+        raise OSError(f"{name} v ZIPu chybí")
+    off, csize, method = idx[name]
+    raw = get(url, binary=True, headers={"Range": f"bytes={off}-{off + 30 + 1024 + csize - 1}"})
+    sig, *_, nlen, elen = struct.unpack("<IHHHHHIIIHH", raw[:30])
+    if sig != 0x04034B50:
+        raise OSError("neplatná hlavička souboru v ZIPu")
+    data = raw[30 + nlen + elen: 30 + nlen + elen + csize]
+    if len(data) != csize:
+        raise OSError("ze ZIPu přišla jen část snímku")
+    if method == zipfile.ZIP_DEFLATED:
+        data = zlib.decompress(data, -15)
+    elif method != zipfile.ZIP_STORED:
+        raise OSError(f"nepodporovaná komprese v ZIPu ({method})")
+    if cache.pripona(data) != ".jpg":
+        raise OSError("snímek v ZIPu není JPEG")
+    src = cache.uloz(klic, data)
+    if not src:   # mezipaměť nejde zapsat (plný disk, sandbox) – snímek jen do dočasného souboru
+        fd, src = tempfile.mkstemp(prefix="aron_", suffix=".jpg")
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+    cache._zapocti(ZIP_HOST, len(data), z_disku=False)
+    return src
+
+
+def fetch_from_zip(vol, apu_id, n, level_offset=1, out="page.jpg", crop=None):
+    """Snímek ze ZIPu svazku; úroveň a výřez udělá ImageMagick z uloženého snímku."""
+    MAGICK = magick()
+    src = snimek_ze_zipu(vol, apu_id, n)
+    W, H = (int(v) for v in subprocess.run([MAGICK, src + "[0]", "-format", "%w %h", "info:"],
+                                            capture_output=True, text=True, check=True).stdout.split())
+    if not cache.odvod(src, out, crop, 2 ** level_offset):
+        raise OSError("ImageMagick nezpracoval snímek ze ZIPu")
+    return out, (W, H)
 
 
 def fetch_image(dzi_url, level_offset=1, out="page.jpg", crop=None):
@@ -241,7 +362,17 @@ if __name__ == "__main__":
         bez_snimku(vol, tiles, n)
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     try:
-        path, dims = fetch_image(tiles[n], lo, out, crop)
+        zdroj = None
+        if zip_url(vol):
+            try:
+                path, dims = fetch_from_zip(vol, apu, n, lo, out, crop)
+                zdroj = "ZIP"
+            except (OSError, zipfile.BadZipFile, StopIteration, KeyError, ValueError, struct.error, zlib.error,
+                    subprocess.CalledProcessError) as e:
+                print(f"ZIP selhal ({e}), zkouším dlaždice z imgx…", file=sys.stderr, flush=True)
+        if not zdroj:
+            path, dims = fetch_image(tiles[n], lo, out, crop)
+            zdroj = "dlaždice"
     except SIT + (ET.ParseError,) as e:
         chyba_archivu(e)
-    print(path, "full size", dims)
+    print(path, "full size", dims, f"({zdroj})")

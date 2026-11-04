@@ -34,6 +34,11 @@ nebo se změnil (CHYBA) – pak je třeba opravit nástroj i tento návod. Pro p
 - **Stažení snímku:** `python3 -I tools/aron_img.py <apu_id> <snímek> 1 pracovni/holice_n_57.jpg`
   (úroveň 1 = poloviční rozlišení – stačí na orientaci; 0 = plné rozlišení – na čtení a výřez).
   Jen část stránky v plném rozlišení: `… <snímek> 0 pracovni/detail.jpg 0.0,0.4,1.0,0.7`.
+- Nástroj bere snímek ze ZIPu „Stáhnout všechny snímky“ (storage.vychodoceskearchivy.cz), ale stáhne z něj jen
+  obsah a ten jeden snímek (1–2 MB, pár sekund) a uloží ho do mezipaměti; další úroveň nebo výřez téhož snímku jsou
+  z disku. Snímky v ZIPu mají asi 3/4 rozlišení prohlížeče, na čtení stačí. Dlaždicový server prohlížeče
+  (imgx.vychodoceskearchivy.cz) terminálu často neodpoví vůbec. Nástroj ho použije jen u svazku bez ZIPu. Když visí,
+  nepiš skript na skládání dlaždic v prohlížeči a řekni to uživateli.
 - **Odkaz na snímek** (pole `odkaz` v `zaznamy.json`): `python3 -I tools/aron_img.py <apu_id> link <snímek>`.
   Odkazy z dřívějších verzí (id souboru PUBLISHED) otevřou knihu na prvním snímku – najde je
   `aron_img.py odkazy`, opraví `aron_img.py odkazy --opravit` (v `data/`, pak znovu `npm run data`).
