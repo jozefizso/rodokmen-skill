@@ -97,6 +97,22 @@ def rejstrik(bid, pis):
     return rows
 
 
+def _print_rejstrik(rows):
+    if not rows:
+        print("Rejstřík nic nevrátil; prázdný výsledek není důkaz, že jméno chybí.")
+    for row in rows:
+        print(" | ".join(row[:2] + row[3:]))
+
+
+def _compose_tiles(tile_rows, out, tmp, magick_cmd):
+    rows = []
+    for y, tiles in enumerate(tile_rows):
+        row_path = os.path.join(tmp, f"row_{y}.png")
+        subprocess.run([magick_cmd, *tiles, "-gravity", "northwest", "+append", row_path], check=True)
+        rows.append(row_path)
+    subprocess.run([magick_cmd, *rows, "-gravity", "northwest", "-append", out], check=True)
+
+
 def snimek(bid, n, out, nahled=False):
     MAGICK = magick()
     ref = f"{BASE}/{bid}/{n}"
@@ -116,27 +132,26 @@ def snimek(bid, n, out, nahled=False):
     if nahled:
         tier = max(1, tier - 2)
     tmp = tempfile.mkdtemp(prefix="trebon_")
-    rows, y = [], 0
-    while True:
-        x, row = 0, []
+    tile_rows, y = [], 0
+    try:
         while True:
-            d = tile(tier, x, y)
-            if not d:
+            x, row = 0, []
+            while True:
+                d = tile(tier, x, y)
+                if not d:
+                    break
+                p = os.path.join(tmp, f"t_{y}_{x}.jpg")
+                with open(p, "wb") as f:
+                    f.write(d)
+                row.append(p)
+                x += 1
+            if not row:
                 break
-            p = os.path.join(tmp, f"t_{y}_{x}.jpg")
-            open(p, "wb").write(d)
-            row.append(p)
-            x += 1
-        if not row:
-            break
-        rp = os.path.join(tmp, f"row_{y}.png")
-        subprocess.run([MAGICK, *row, "-crop", "768x769+0+0", "+repage", "+append", rp], check=True)
-        rows.append(rp)
-        y += 1
-    subprocess.run([MAGICK, *rows, "-crop", "100%x768+0+0", "+repage", "-append", out], check=True)
-    for f in os.listdir(tmp):
-        os.remove(os.path.join(tmp, f))
-    os.rmdir(tmp)
+            tile_rows.append(row)
+            y += 1
+        _compose_tiles(tile_rows, out, tmp, MAGICK)
+    finally:
+        shutil.rmtree(tmp)
     r = subprocess.run([MAGICK, out + "[0]", "-format", "%wx%h", "info:"], capture_output=True, text=True)
     print(out, r.stdout, "odkaz:", ref)
 
@@ -165,8 +180,7 @@ if __name__ == "__main__":
         for bid, c in svazky(a[1]):
             print(bid, "|", " | ".join(x[:300] for x in c if x))
     elif a[0] == "rejstrik":
-        for r in rejstrik(a[1], a[2]):
-            print(" | ".join(r[:2] + r[3:]))
+        _print_rejstrik(rejstrik(a[1], a[2]))
     elif a[0] == "snimek":
         snimek(a[1], a[2], a[3], len(a) > 4)
     elif a[0] == "svazek":
