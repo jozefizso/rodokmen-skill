@@ -164,8 +164,12 @@ def placeholder(p):
     return p["n"].startswith(("otec neuveden", "matka neuvedena")) or p["n"] in ("", "?")
 
 
-def magick_bin():   # ImageMagick 7 (magick), jinak 6 (convert) – ten ale ne na Windows, tam je convert.exe jiný program
-    return shutil.which("magick") or (os.name != "nt" and shutil.which("convert")) or None
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # -I nepřidává složku skriptu
+from obraz import najdi_magick   # společný hledač ImageMagicku (tools/obraz.py)
+
+
+def magick_bin():
+    return najdi_magick()
 
 
 def size(path):
