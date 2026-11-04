@@ -13,7 +13,9 @@ Vedeš člověka, který **nikdy nedělal genealogii ani neprogramoval**, od rod
 až k hezkému rodinnému webu. Ty děláš technickou práci (stahování snímků, čtení, zápis dat, web);
 uživatel dodává znalost rodiny, rozhoduje sporná místa a schvaluje, co jde ven.
 
-**Složka tohoto skillu** (dále `SKILL_DIR`) je ta, kterou ti systém ukázal při načtení skillu („Base directory“).
+**Složka tohoto skillu** (dále „složka skillu“) je ta, ve které leží tento `SKILL.md`.
+V Claude Code ji systém při načtení ukáže jako „Base directory“. V Cursoru je to osobní skill
+`~/.cursor/skills/rodokmen` (kam ho dát a jak ho načte cloud agent: `reference/cursor.md`).
 Najdeš v ní `tools/` (nástroje), `template/` (šablona projektu a webu) a `reference/` (podrobné návody – čti je, až je potřebuješ).
 
 ## Jak mluvit s uživatelem
@@ -49,14 +51,15 @@ Najdeš v ní `tools/` (nástroje), `template/` (šablona projektu a webu) a `re
 2. Projekt ještě není → **Fáze 0**.
 
 ## Fáze 0 – Příprava (jednou)
-1. Zkontroluj nástroje: `python3 --version` (≥ 3.9), `node --version` (≥ 20), `magick -version` (ImageMagick 7; je-li jen
+1. Zkontroluj nástroje: `python3 --version` (≥ 3.9), `node --version` (≥ 22.12 – web staví na Astro 7 a ten na starším Node sestavení odmítne; v Claude Code stejně jako v Cursoru), `magick -version` (ImageMagick 7; je-li jen
    verze 6 s příkazem `convert`, nástroje ji mimo Windows použijí samy), `git --version`.
    Co chybí, pomoz nainstalovat (macOS: Homebrew `brew install python node imagemagick git`; Windows: winget / instalátory
    z python.org, nodejs.org, imagemagick.org). **winget na Windows vždy s plnými přepínači**, jinak spadne na otázce
    ke zdroji msstore („Error reading input in prompt“): `winget install --id <balík> --source winget
    --accept-source-agreements --accept-package-agreements` (balíky `Python.Python.3.12` + `--scope user`,
-   `OpenJS.NodeJS.LTS`, `ImageMagick.ImageMagick`, `Git.Git`). Instalace systémových věcí nech uživatele potvrdit;
-   interaktivní příkazy mu dej s předponou `!`, ať je spustí sám.
+   `OpenJS.NodeJS.LTS`, `ImageMagick.ImageMagick`, `Git.Git`). Instalace systémových věcí nech uživatele potvrdit.
+   Interaktivní příkazy ať spustí sám: v Claude Code mu je dej s předponou `!`, jinde (Cursor) mu je napiš do chatu
+   jako blok ke zkopírování a počkej, až je spustí.
    **macOS:** ověř https: `python3 -I -c "import urllib.request; urllib.request.urlopen('https://aron.vychodoceskearchivy.cz')"`.
    Python z python.org po instalaci nemá certifikáty (`CERTIFICATE_VERIFY_FAILED`) – ať uživatel spustí
    `Install Certificates.command` ve složce `/Applications/Python 3.x/`, nebo použij Python z Homebrew (`/opt/homebrew/bin/python3`).
@@ -66,13 +69,13 @@ Najdeš v ní `tools/` (nástroje), `template/` (šablona projektu a webu) a `re
    (`which -a python`) – může být přibalený k jinému programu (Inkscape, GIMP…) a nemít certifikáty. Ověř https:
    `python -I -c "import urllib.request; urllib.request.urlopen('https://aron.vychodoceskearchivy.cz')"`. Když spadne
    na `CERTIFICATE_VERIFY_FAILED`, nainstaluj běžný Python (winget výše) a volej ho plnou cestou
-   `"$LOCALAPPDATA/Programs/Python/Python312/python.exe"` (do PATH se dostane až po restartu Claude Code). `-I` ignoruje proměnnou `PYTHONUTF8`;
+   `"$LOCALAPPDATA/Programs/Python/Python312/python.exe"` (do PATH se dostane až po restartu agenta). `-I` ignoruje proměnnou `PYTHONUTF8`;
    bez `-X utf8` je výstup do roury nebo souboru v kódování Windows (cp1250) – čeština se rozbije a některé nástroje
    spadnou na znacích jako „→“. ImageMagick: `winget install --id ImageMagick.ImageMagick --source winget --accept-source-agreements --accept-package-agreements`; do PATH se dostane až po
-   restartu Claude Code (do té doby před příkazy `export PATH="/c/Program Files/ImageMagick-7…:$PATH"` s přesnou složkou
+   restartu agenta (do té doby před příkazy `export PATH="/c/Program Files/ImageMagick-7…:$PATH"` s přesnou složkou
    z `C:\Program Files`). **Nikdy `convert`** (to je systémový nástroj Windows), vždy `magick`. Skripty `.sh` spouštěj
    přes Git Bash (`bash tools/…`). Delší jednorázové skripty v Pythonu nepiš jako heredoc (`python - <<EOF`), v Git Bash
-   občas spadnou na „unexpected EOF“ – zapiš je do souboru v `pracovni/` a spusť. Tato pravidla zapiš hned po založení projektu do jeho `CLAUDE.md`, ať platí i příště
+   občas spadnou na „unexpected EOF“ – zapiš je do souboru v `pracovni/` a spusť. Tato pravidla zapiš hned po založení projektu do jeho `CLAUDE.md` a `AGENTS.md` (mají stejný text; Claude Code čte první, Cursor druhý), ať platí i příště
    (a dej je do zadání i pomocníkům, viz `reference/matriky.md`).
    **Prohlížeč pro Clauda** potřebuješ pro archivy, které nástroje nepouštějí (SOA Praha, MZA Brno, SOA Třeboň, ZA Opava,
    hledání v SOA Litoměřice). Když předci žili tam a nemáš nástroje `mcp__…playwright…`, nabídni doplněk
@@ -81,15 +84,15 @@ Najdeš v ní `tools/` (nástroje), `template/` (šablona projektu a webu) a `re
    in Chrome (`/chrome`), postupy v `portaly.md` jsou ale vyzkoušené s Playwrightem (snímek obrazovky do souboru).
    Bez prohlížeče ať uživatel posílá snímky obrazovky.
 2. Zeptej se, kde má projekt být (navrhni `~/Rodokmen`), a založ ho:
-   `python3 -I SKILL_DIR/tools/novy_projekt.py <složka>`
+   `python3 -I <složka skillu>/tools/novy_projekt.py <složka>`
    Chce-li uživatel nejdřív vidět, jak web vypadá, založ vedle ukázku: `… novy_projekt.py ~/Rodokmen-ukazka --ukazka`,
    pak `cd web && npm install && npm run nahled` a pošli mu odkaz http://localhost:4321.
    Pak se zeptej, jestli zapnout **hlídač sítě** (`… novy_projekt.py <složka> --hlidac`, vypnutí `--bez-hlidace`).
    Vysvětli jednou větou: archivy blokují IP adresu po sérii rychlých dotazů. Hlídač je malý skript v projektu
    (`tools/hlidac_site.py`), který před každým příkazem zkontroluje, že stahování jde přes brzdu, a jinak ho zamítne.
    Sám nic nestahuje. Bez něj platí jen pravidla níže a zákaz přímého `curl`/`wget` v `.claude/settings.json`.
-3. V projektu `git init` a první uložení (git = historie změn, kdyby se něco pokazilo). Doporuč pokračovat v Claude Code
-   **z této složky** (soubor `CLAUDE.md` v ní zajistí, že příště navážeš).
+3. V projektu `git init` a první uložení (git = historie změn, kdyby se něco pokazilo). Doporuč pokračovat
+   **z této složky**: v Claude Code (soubor `CLAUDE.md` zajistí, že příště navážeš) i v Cursoru (totéž dělá `AGENTS.md`).
 4. Vyplň v `data/STAV.md` sekci „Pro koho“ a v `data/web.json` název webu („Rodokmen Novákových“),
    jakmile znáš příjmení výchozí osoby (šablona je prázdná).
 
@@ -226,7 +229,7 @@ Ať zmíní i zjevně související výskyty (viz krok 6 výše). Výstupy pomoc
 na dvě čitelné poloviny), než ho zapíšeš jako `doc`. Uživateli to vysvětli správně: pomocníci nečtou hůř, je to stejný
 model. Jde o princip čtyř očí a pomocník nemá kontext (dvě rodiny stejného jména ve vsi, dva Janové na statku).
 Prohlížeč může mít najednou jen jeden pomocník, proto dávej přednost nástrojům bez prohlížeče.
-**Pomocníky spouštěj na levnějším modelu** (Agent s `model: "sonnet"`): hledání a první čtení zvládnou a stojí zlomek
+**Pomocníky spouštěj na levnějším modelu** (v Claude Code Agent s `model: "sonnet"`; v Cursoru stejně levnější model): hledání a první čtení zvládnou a stojí zlomek
 kreditů. Ověření na snímku a zápis do dat dělá hlavní model (ty). Uživateli to řekni, ať ví, proč kredity tolik neubývají.
 Osvědčilo se 3–4 pomocníci na různé větve a archivy současně, jedno kolo ≈ 15–25 nových předků.
 Pomocníci stojí hodně kreditů – před velkým kolem řekni uživateli, co plánuješ a proč, a nech si to schválit.
@@ -253,7 +256,7 @@ Podrobně `reference/pribehy.md`. Tohle je to, co rodina na webu čte nejradši,
 ## Fáze 4 – Web
 Podrobně `reference/web.md`. Ve zkratce:
 1. `cd web && npm install` (jednou), pak `npm run nahled` → http://localhost:4321 – ukaž uživateli. V cloudovém prostředí
-   (claude.ai) localhost neuvidí – pošli mu snímky stránek (headless prohlížeč) nebo nasaď náhled.
+   (claude.ai i cloud agent v Cursoru) localhost neuvidí – pošli mu snímky stránek (headless prohlížeč) nebo nasaď náhled.
 2. Nastav `data/web.json`: název, úvod, kontakt a **přihlašovací otázku a odpověď** (web je jen pro rodinu).
 3. Po každé změně dat: `npm run data && npm run build` (nebo znovu `npm run nahled`). Hlášky `POZOR: nefunkční odkaz`
    oprav hned (adresa osoby se mění, když se jí doplní rok narození).
@@ -264,8 +267,8 @@ Podrobně `reference/web.md`. Ve zkratce:
    co na webu nechat smí, zapiš úryvkem textu do `web.json` → `citlive_schvaleno` (pak se už nehlásí).
 
 ## Fáze 5 – Zveřejnění (volitelné, jen se souhlasem)
-Výchozí cesta je **Cloudflare** (zdarma, nasazování bez limitu): přihlášení `npx -y wrangler@4 login` (uživatel jen
-klikne v prohlížeči na Allow), název adresy do `web.json` (`cloudflare.nazev`) a `npm run nasadit-cloudflare` – postup
+Výchozí cesta je **Cloudflare** (zdarma, nasazování bez limitu): přihlášení `npx -y wrangler@4 login` je interaktivní – dej je uživateli jako `! npx -y wrangler@4 login`
+(v Claude Code; jinde jako blok ke zkopírování, bez `!`), uživatel jen klikne v prohlížeči na Allow, název adresy do `web.json` (`cloudflare.nazev`) a `npm run nasadit-cloudflare` – postup
 v `reference/web.md`. Kdo už má web na Netlify, pokračuje `npm run nasadit`. Pokročilá varianta: vlastní server (Docker/CapRover).
 Nic nezveřejňuj bez výslovného souhlasu uživatele.
 Po zveřejnění **nenasazuj po každém kole** (Netlify zdarma vystačí jen na zhruba 20 nasazení měsíčně, u Cloudflare to

@@ -201,7 +201,7 @@ svazek, výstup JavaScriptu bez parametrů v Claude in Chrome).
 - Pozor na hranici: obce na Litovelsku a Olomoucku patří pod **ZA Opava**, ne pod MZA Brno.
 - **Bez prohlížeče to nejde.** Badatelna `https://digi.archives.cz/da/` (stará adresa matriky.archives.cz jen přesměruje)
   má ochranu proti robotům – curl ani WebFetch se nedostanou ani na hledání. Potřebuješ připojený prohlížeč (Claude in
-  Chrome – uživatel ho připojí příkazem `/chrome` – nebo Playwright); jinak ať knihu najde a snímky uloží uživatel.
+  Chrome – uživatel ho v Claude Code připojí příkazem `/chrome` – nebo prohlížeč agenta v Cursoru, nebo Playwright); jinak ať knihu najde a snímky uloží uživatel.
   **Vestavěný prohlížeč aplikace Claude** (desktop, Code) archiv odmítne hned („Anomaly detected“) – nepoužívej ho.
   Úvodní ověření projde samo, ale jen v kartě v popředí. Okno nastav aspoň na 1400×900, v užším se nezobrazí
   filtry ani snímek. **CAPTCHA přijde typicky už u prvního hledání**, pak zhruba po hodině a v nové relaci
@@ -299,7 +299,7 @@ svazek, výstup JavaScriptu bez parametrů v Claude in Chrome).
 ## Matricula (Rakousko, Bavorsko, Polsko…; data.matricula-online.eu) – `tools/matricula_*.sh`
 - Bez přihlášení. Seznam knih: `…/de/oesterreich/<diecéze>/<farnost>/?page=N`; snímek knihy `…/<id>/?pg=<snímek>`
   (zároveň trvalý odkaz).
-- URL obrázku obsahuje `csrf` a `ctrl` počítané JavaScriptem → je potřeba prohlížeč (Playwright / Claude in Chrome):
+- URL obrázku obsahuje `csrf` a `ctrl` počítané JavaScriptem → je potřeba prohlížeč (Playwright / Claude in Chrome, v Cursoru prohlížeč agenta):
   otevři knihu, klikni na stránku (`.docview-pagelink`), URL obrázku vezmi z `performance.getEntriesByType('resource')`
   a stáhni `bash tools/matricula_dl.sh "<url>" pracovni/x.jpg`. Víc stránek: soubor řádků „<snímek> <url>“ → `matricula_batch.sh`.
 - Rejstřík najdeš bez prohlížeče: HTML stránky knihy má seznam `labels` s popisky snímků („04-Index Taufe_0001“).
@@ -397,7 +397,7 @@ A když osoba „chybí“ v očekávaných matrikách (stěhovala se se službo
 
 ## Ostatní portály – obecný postup
 Nástroje pro ně hotové nejsou. Postupuj takto a výsledek zapiš do `STAV.md`, ať to příště víš:
-1. Otevři portál v prohlížeči (Claude in Chrome / Playwright, pokud jsou k dispozici; jinak požádej uživatele).
+1. Otevři portál v prohlížeči (Claude in Chrome / prohlížeč v Cursoru / Playwright, pokud jsou k dispozici; jinak požádej uživatele).
    Najdi fond „Sbírka matrik“ / „Matriky“ a svazek podle obce a let.
 2. **Snímek:** většina prohlížečů má tlačítko ke stažení obrázku – ulož do `pracovni/`. Když ne, podívej se v síťovém
    provozu, odkud se načítají dlaždice/obrázky (IIIF, DeepZoom, Zoomify), a stáhni celý obrázek touto cestou – jednotlivě,

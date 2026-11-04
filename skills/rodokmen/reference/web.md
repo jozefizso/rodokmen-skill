@@ -89,14 +89,16 @@ Další aktualizace = jen `npm run nasadit-cloudflare`.
 ## Zveřejnění na Netlify (druhá možnost)
 Pro uživatele, kteří už web na Netlify mají. Bezplatný účet vystačí jen na asi 20 nasazení měsíčně (viz kredity níže).
 1. Uživatel si založí účet na netlify.com (stačí přihlášení přes Google/GitHub) – udělá sám.
-2. Přihlášení CLI (otevře prohlížeč) – dej uživateli: `! cd web && npx -y netlify-cli@latest login`.
-   Když `!` nejde (cloudové prostředí): `npx -y netlify-cli@latest login --request "Rodokmen"` vypíše odkaz a číslo
+2. Přihlášení CLI (otevře prohlížeč) – dej uživateli. V Claude Code s předponou `!`: `! cd web && npx -y netlify-cli@latest login`.
+   Kde `!` není (Cursor), dej mu do chatu blok ke zkopírování `cd web && npx -y netlify-cli@latest login` a počkej, až ho spustí sám.
+   Když `!` nejde (cloudové prostředí, nebo ho agent nemá): `npx -y netlify-cli@latest login --request "Rodokmen"` vypíše odkaz a číslo
    lístku – uživatel odkaz otevře a schválí, pak `npx -y netlify-cli@latest login --check <lístek>`.
-3. Založení webu a propojení složky (interaktivní, jednou) – dej uživateli:
-   `! cd web && npx -y netlify-cli@latest sites:create` (zvolí tým a název → adresa `https://<název>.netlify.app`),
+3. Založení webu a propojení složky (interaktivní, jednou) – dej uživateli stejně:
+   v Claude Code `! cd web && npx -y netlify-cli@latest sites:create`, jinde blok `cd web && npx -y netlify-cli@latest sites:create`
+   (zvolí tým a název → adresa `https://<název>.netlify.app`),
    případně `npx netlify-cli link`, pokud web už existuje. Je-li uživatel už přihlášený, jde web založit i bez dotazů
    (můžeš spustit sám): `cd web && npx -y netlify-cli@latest sites:create --name <název> --account-slug <tým>`.
-   **Windows:** když `!` běží ve Windows PowerShellu 5.1 (`&&` tam nefunguje a `npx` blokuje Execution Policy), ať uživatel
+   **Windows:** když `!` nebo vložený příkaz běží ve Windows PowerShellu 5.1 (`&&` tam nefunguje a `npx` blokuje Execution Policy), ať uživatel
    otevře PowerShell 7 nebo Příkazový řádek, přejde do složky `web` a spustí `npx -y netlify-cli@latest login` (a `sites:create`).
    **Nový web bývá „Private“ (ochrana týmu)** – rodina by místo rodinné otázky viděla přihlášení k Netlify a majitel to
    nepozná (je přihlášený). Řekni to uživateli předem; kontrola po nasazení (krok 4) ji pozná. Vypni ji se souhlasem uživatele:
@@ -122,6 +124,9 @@ Projekt má `.claude/launch.json` – náhled webu v Claude desktop spustí `npm
 předtím musí vyexportovat (`cd web && npm run data`). Když náhled nenaběhne (třeba na Windows, kde je `npm` jako `npm.cmd`),
 zkus v `launch.json` `"runtimeExecutable": "node"` a `"runtimeArgs": ["web/node_modules/astro/bin/astro.mjs", "dev", "--root", "web"]`
 (Astro 7 má spouštěč `astro.mjs`, ne `astro.js`). Server běží jen na tomto počítači – nepřidávej `--host`.
+
+V Cursoru `.claude/launch.json` náhled nespouští. Ve složce `web` spusť `npm run nahled` a pošli odkaz http://localhost:4321.
+I tady server běží jen na tomto počítači – nepřidávej `--host`.
 
 ## Vlastní server (pokročilé)
 - Docker: `web/Dockerfile` (build Astro → nginx s `nginx.conf` z `nginx.sablona.conf`). Před buildem image vždy `npm run data`.
