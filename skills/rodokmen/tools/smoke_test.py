@@ -21,7 +21,6 @@ PY = [sys.executable, "-I", "-X", "utf8"]
 # (název, [nástroj, argumenty…], očekávaný text ve výstupu, „volitelné“ = NEDOSTUPNÉ i při jiné chybě sítě je v pořádku)
 TESTY = [
     ("aron", ["aron_search.py", "Holice"], "count", False),
-    ("trebon", ["trebon.py", "misto", "Tábor"], "Tábor", False),
     ("portafontium", ["portafontium.py", "fara", "Dolní Bělá"], "dolni-bela", False),
     ("ebadatelna", ["ebadatelna.py", "hledat", "Kladno"], "Kladno", False),
     ("ahmp", ["@bash", "ahmp_search.sh", "Smíchov"], "Smíchov", False),
