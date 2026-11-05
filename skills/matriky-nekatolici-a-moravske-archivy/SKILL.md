@@ -13,7 +13,7 @@ Farnost má často **samostatnou knihu pro každou obec** (Krucemburk, Hluboká 
 
 ## Archivy
 - **ARON** (SOA Zámrsk): `aron_search.py`, `aron_img.py`; snímek = dvojstrana; kalibrace rok ↔ snímek čtením dat; zápis v knize `150-6` (Solnice narození 1837–1872) 8–10 snímků na rok.
-- **SOA Třeboň** (`trebon.py`): jmenné rejstříky dobrovolníků jen u některých knih.
+- **SOA Třeboň** (jen v prohlížeči, nástroj `trebon.py` byl na žádost archivu odstraněn): jmenné rejstříky dobrovolníků jen u některých knih.
 - **Acta Publica (MZA Brno)**: Morava, evangelické matriky Sněžné (16766 narození 1795–1808, 16773 oddaní 1820–1864), katolické Radostín/Vojnův Městec (16528). URL `…/detail/<ID>?image=<prefix>-<n×10 pětimístně>.jp2`. Jen prohlížeč, curl nefunguje; čtení pomalé (10–25 s/snímek).
 - **Matricula** (Vídeň, Hernals): bez přihlášení; obrázky přes tokeny stránky (`matricula_dl.sh`).
 - **RÚIAN (ČÚZK)**: z čísla popisného souřadnice dnešního domu: `AdresniMisto`, `adresa LIKE 'Obec 12, <PSČ>%'`; pozor na č.ev. a ulice ve městech.
