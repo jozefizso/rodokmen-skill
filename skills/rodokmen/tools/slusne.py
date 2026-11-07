@@ -19,7 +19,10 @@ Pravidla (pro každý web zvlášť, společně pro všechny procesy i projekty 
     omezuje se frekvence, ne souběh (vlákna stahování dlaždic nevadí),
   - po odpovědi 429/503 (u dotazu i 403), po stránce „zablokováno“ nebo po 3 nepovedených spojeních za sebou
     se web zastaví pro všechny procesy a nástroj hned skončí (kód 3). Nic se neopakuje, nic se neobchází.
-    Stopka trvá 30 minut, při druhém odmítnutí webu během 24 h 2 hodiny, při třetím a dalším 8 hodin.
+    Stopka trvá 30 minut, při druhém odmítnutí webu během 24 h 2 hodiny, při třetím a dalším 8 hodin;
+    když archiv v hlavičce Retry-After chce delší pauzu, trvá stopka tak dlouho, jak chce archiv.
+  - když archiv hlásí, že dotazy docházejí (hlavička RateLimit-Remaining / X-RateLimit-Remaining 0 nebo 1), další
+    dotaz na web počká, až se limit obnoví (RateLimit-Reset / X-RateLimit-Reset, nejvýš hodinu), pro všechny procesy.
   - curl, python a bash spuštěné z Pythonu (subprocess) jdou taky přes brzdu.
   - MZA Brno (mza.cz) skripty nepovoluje: skriptem jen hledání knih (…/actapublica/matrika/hledani…,
     1 dotaz za 4 s), detail knihy a snímky jen v prohlížeči. Jiná adresa MZA nástroj hned ukončí (kód 3).
@@ -41,6 +44,7 @@ LIMITY = {                           # konec názvu webu: (dotaz, obrázek)
     "digi.nacr.cz": (4.0, 4.0),      # Národní archiv (policejní přihlášky) – po pár rychlých kartách přiškrcuje podle IP
     "aron.vychodoceskearchivy.cz": (2.0, 2.0),   # ARON: celý sken (2–4 MB) jedním požadavkem; dlaždice imgx.… dál 0,1 s
     "portafontium.eu": (10.0, 10.0), # SOA Plzeň – robots.txt „Crawl-delay: 10“ (snímek IIIF je jeden požadavek)
+    "slovakiana.sk": (10.0, 10.0),   # Slovakiana (SNA) – robots.txt „Crawl-delay: 10“, platí i pro API wcm.… a snímky content.…
 }
 ZAKAZ = {                            # konec názvu webu: (cesty povolené skriptům, hláška pro ostatní)
     suffix: (re.compile(r"/actapublica/matrika/hledani"),
@@ -253,7 +257,8 @@ def pockej(url_nebo_host, obrazek=None):
         time.sleep(slot - ted)
 
 
-def zastav(host, duvod):
+def zastav(host, duvod, aspon=0):
+    """Zastaví web pro všechny procesy; aspon = nejkratší stopka v sekundách (z hlavičky Retry-After)."""
     skupina, _ = _skupina(host)
     if not skupina:
         return
@@ -263,7 +268,7 @@ def zastav(host, duvod):
         ted = time.time()
         if st.get("stop", 0) <= ted:   # už zastavený web = odpověď na souběžný dotaz, ne nové odmítnutí
             odm = [t for t in st.get("odmitnuti", []) if t > ted - OKNO] + [ted]
-            st.update(stop=ted + STOPKY[min(len(odm), len(STOPKY)) - 1], duvod=duvod,
+            st.update(stop=ted + max(STOPKY[min(len(odm), len(STOPKY)) - 1], aspon or 0), duvod=duvod,
                       kdy=time.strftime("%Y-%m-%d %H:%M"), odmitnuti=odm, poradi=len(odm))
             _uloz(path, st)
     _ohlas(skupina, st)
@@ -282,13 +287,59 @@ def _spojeni_selhalo(host, e):
         zastav(host, f"3 nepovedená spojení za sebou ({type(e).__name__}) – archiv neodpovídá nebo nás zablokoval")
 
 
-def kontroluj_odpoved(host, status, obrazek, telo=None):
+def _sekundy(hodnota, ted=None):
+    """Retry-After / RateLimit-Reset na sekundy od teď: počet sekund, čas v epoše nebo datum HTTP. Nejde -> 0."""
+    hodnota = (hodnota or "").strip()
+    ted = ted or time.time()
+    if re.fullmatch(r"\d+(\.\d+)?", hodnota):
+        n = float(hodnota)
+        return max(0.0, n - ted) if n > 1e9 else n   # velké číslo = okamžik (epocha), malé = počet sekund
+    try:
+        from email.utils import parsedate_to_datetime
+        return max(0.0, parsedate_to_datetime(hodnota).timestamp() - ted)
+    except (TypeError, ValueError, IndexError, OverflowError):
+        return 0.0
+
+
+def zpomal(host, sekund):
+    """Archiv hlásí, že dotazy docházejí: další dotaz i obrázek na web až za `sekund` (nejvýš hodinu), všem procesům."""
+    skupina, _ = _skupina(host)
+    if not skupina or sekund <= 0:
+        return
+    sekund = min(sekund, 3600)
+    path = _cesta(skupina)
+    with _Zamek(path + ".lock"):
+        st = _nacti(path)
+        do = time.time() + sekund
+        if do > max(st.get("dalsi_dotaz", 0), st.get("dalsi_obrazek", 0)) + 1:
+            st["dalsi_dotaz"] = max(st.get("dalsi_dotaz", 0), do)
+            st["dalsi_obrazek"] = max(st.get("dalsi_obrazek", 0), do)
+            _uloz(path, st)
+            print(f"slusne: {skupina} hlásí, že dotazy docházejí – další až za {round(sekund)} s.", file=sys.stderr)
+
+
+def _hlavicky_limitu(host, hlavicka):
+    """Hlavičky RateLimit-* (IETF návrh) a X-RateLimit-* (GitHub a spol.): u zbytku 0–1 počkat na obnovení limitu."""
+    zbyva = hlavicka("RateLimit-Remaining") or hlavicka("X-RateLimit-Remaining")
+    if not zbyva:
+        m = re.search(r"\br=(\d+)", hlavicka("RateLimit") or "")   # novější tvar: RateLimit: "default";r=0;t=30
+        zbyva = m and m.group(1)
+    if zbyva and str(zbyva).strip().isdigit() and int(zbyva) <= 1:
+        reset = hlavicka("RateLimit-Reset") or hlavicka("X-RateLimit-Reset")
+        if not reset:
+            m = re.search(r"\bt=(\d+)", hlavicka("RateLimit") or "")
+            reset = m and m.group(1)
+        zpomal(host, _sekundy(reset) or 60)
+
+
+def kontroluj_odpoved(host, status, obrazek, telo=None, retry_after=None):
     skupina, _ = _skupina(host)
     if not skupina:
         return
     _selhani.pop(skupina, None)
     if status in (429, 503) or (status == 403 and not obrazek):
-        zastav(host, f"HTTP {status}")
+        zastav(host, f"HTTP {status}" + (f", Retry-After {retry_after}" if retry_after else ""),
+               aspon=_sekundy(retry_after))
     vzor = BAN_TEXT.get(skupina)
     if vzor and telo and vzor.search(telo):
         zastav(host, "stránka hlásí zablokování")
@@ -416,7 +467,8 @@ def _zapni():
         if skupina in BAN_TEXT and r.status == 200 and "html" in (r.getheader("Content-Type") or ""):
             telo = r.read()             # přečíst a vrátit zpět, aby volající dostal celé tělo
             r.fp, r.length, r.chunked, r.will_close = io.BytesIO(telo), len(telo), False, True
-        kontroluj_odpoved(host, r.status, obr, telo)
+        kontroluj_odpoved(host, r.status, obr, telo, r.getheader("Retry-After"))
+        _hlavicky_limitu(host, r.getheader)
         plna = getattr(self, "_slusne_ulozit", None)
         if plna and r.status == 200 and not r.getheader("Content-Encoding"):
             delka = r.getheader("Content-Length")
