@@ -20,6 +20,7 @@ Matriky jsou online u osmi státních archivů (a židovské ještě v Národní
 | Matricula Online | církevní matriky Rakouska (i Vídně), Německa, Polska, Srbska… | data.matricula-online.eu | **navigace ano – `matricula.py`**; obrázky v prohlížeči |
 | Mauthausen Memorial | zemřelí v Mauthausenu a pobočkách | raumdernamen.mauthausen-memorial.org | **ano – `mauthausen.py`** |
 | Terezínská iniciativa | oběti nacistické perzekuce (Židé z českých zemí) | holocaust.cz/databaze-obeti | **ano – `obeti.py`** |
+| Slovakiana (Slovenský národný archív) | sčítací hárky 1930 (a zčernené 1940) celého Slovenska – kdo bydlel v domě | slovakiana.sk/scitacie-harky | **ano – `slovakiana.py`** (index obce; snímky jen vybraných hárků) |
 | VHÚ / VÚA-VHA | vojáci 1. světové války (seznamy ztrát, vojenské matriky), válečné hroby | digitalnistudovna.mo.gov.cz, valecnehroby.army.cz | nevyzkoušeno (ze zkušebního prostředí nedostupné) |
 
 Adresy u nevyzkoušených portálů ověř při prvním použití (portály se mění). Když nástroj selže, spusť `python3 -I tools/smoke_test.py`
@@ -447,6 +448,21 @@ Stav ověřený v říjnu 2026 ze zkušebního prostředí skillu: slovenské (a
   Československa (zejména 1946–1950) a usazovali v pohraničí. K původu rodiny zapiš: obec v Banátu, vyznání, jméno rodiny v Banátu (často německy/česky pomaďarštěné). Cesta:
   rozhovor s rodinou → FamilySearch (farní matriky obce) → spisy o osídlení/reemigraci (viz „Po válce přistěhovaní“ výše).
 - **Maďarsky/slovensky psané zápisy**: čti pomalu, tabulky mají rubriky (rodiče, kmotři, vyznání); Claude umí maďarštinu a slovenštinu, latinu a němčinu, ale u písma buď opatrný (označ nejistá místa „(?)“).
+
+### Slovakiana – sčítací hárky 1930 (`tools/slovakiana.py`, vyzkoušeno 7. 11. 2026)
+Sčítací hárek ze sčítání lidu 1. 12. 1930 zachycuje jednu domácnost: jména, vztah k hlavě domácnosti, datum a místo narození,
+domovskou obec, náboženství, národnost, povolání. Je to most mezi matrikami (do roku 1895–1910) a vzpomínkami rodiny.
+- `slovakiana.py hledat "Stará Turá" [--rok 1930] [--okres "Nové Mesto nad Váhom"]` vypíše všechny hárky obce seřazené podle čísla domu
+  a uloží index do `pracovni/slovakiana/<obec>.md` a `.json`. Velká obec má tisíce hárků; hledání stojí jeden dotaz na 200 hárků.
+  Číslo domu je číslo súpisné z pole ulice (`-, -/68` = dům 68). Číslo domu předků zjisti z matriky (rubrika „číslo domu“) nebo od rodiny.
+- `slovakiana.py harok <cair-id>` vypíše popis hárku a adresy snímků. `slovakiana.py stahni <cair-id|odkaz> …` stáhne obě strany hárku
+  jako JPEG 2000 (`.jp2`, asi 7000×5000 px) a převede je na `.jpg` (ImageMagick s podporou JP2, na macOS `sips`).
+- **Stahuj jen hárky, které čteš.** Snímkový server `content.slovakiana.sk` má v robots.txt `Disallow: /` a hárky mají příznak
+  `downloadable: false`. Nástroj proto stáhne nejvýš 10 hárků na jedno spuštění a celou obec stahovat neumí. Ostatní hárky otevři
+  v prohlížeči přes odkaz z indexu. Slovakiana chce `Crawl-delay: 10`, brzda proto pouští jeden požadavek za 10 s a jeden hárek trvá asi 40 s.
+- Hárky z roku 1940 jsou zčernené (osobní údaje) a snímky k nim Slovakiana nedává. Index je uvádí kvůli úplnosti.
+- Do `data/zaznamy.json` dej jako odkaz `https://slovakiana.sk/scitacie-harky/<cair-id>` a jako zdroj „Sčítanie ľudu 1930, Slovenský národný
+  archív, škatuľa X, hárok Y“.
 
 ## Polsko – Szukaj w Archiwach a Geneteka
 - **Szukaj w Archiwach** (szukajwarchiwach.gov.pl, polské státní archivy se skeny matrik): portál je chráněný systémem Imperva Incapsula (JavaScriptová kontrola

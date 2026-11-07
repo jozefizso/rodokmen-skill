@@ -36,6 +36,7 @@ TESTY = [
     ("arolsen", ["arolsen.py", "hledat", "Novák Josef 1905", "--max", "3"], "|", False),
     ("mauthausen", ["mauthausen.py", "hledat", "Novak", "--stran", "1"], "Novak", False),
     ("matricula", ["matricula.py", "oblasti"], "oesterreich", False),
+    ("slovakiana", ["slovakiana.py", "harok", "cair-ko1e3on"], "Stará Turá", False),
 ]
 SIT = ("urlopen error", "timed out", "Connection", "connection", "Name or service", "Temporary failure", "CERTIFICATE", "HTTP Error 403",
        "HTTP Error 5", "HTTP Error 429", "Max retries", "remote end closed", "RemoteDisconnected", "Errno 104", "Errno 111", "gaierror",
