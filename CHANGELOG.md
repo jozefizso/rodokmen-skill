@@ -6,13 +6,17 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
-## Nevydáno
+## 0.10.0 – 7. 11. 2026
 
 **Nové**
+- Sčítací hárky 1930 ze Slovakiany (Slovensko): `slovakiana.py hledat "Obec"` vypíše všechny hárky obce podle čísla domu
+  a uloží index s odkazy do prohlížeče. `slovakiana.py stahni` stáhne obě strany vybraných hárků (nejvýš 10 najednou).
 - Nástroje pro SOA Litoměřice, židovské matriky Národního archivu a další genealogické a válečné databáze.
   MZA Brno: `mza.py hledat` a `puvodce` najdou knihy, snímky se dál čtou v prohlížeči.
 - Navigace v Matricule a kontrola dostupnosti archivních nástrojů pomocí `smoke_test.py`.
 - Výřezy Zoomify stahují jen potřebné dlaždice; Python nástroje používají společnou brzdu proti přetížení archivů.
+- Brzda dodržuje pauzu, o kterou archiv žádá v hlavičce Retry-After, a když archiv hlásí, že dotazy docházejí
+  (RateLimit-Remaining), počká na obnovení limitu.
 
 ## 0.9.1 – 6. 11. 2026
 

@@ -152,7 +152,7 @@ Základní smyčka pro každou osobu:
 3. **Najdi svazek**: podle obce → farnost → archiv. ARON: `python3 -I tools/aron_search.py "Obec"`, SOA Plzeň:
    `python3 -I tools/portafontium.py obec "Obec"`, SOA Litoměřice: `tools/litomerice.py`, židovské matriky (Národní archiv): `tools/vademecum.py`,
    Brno – osobnosti, ulice, hroby: `tools/brno_encyklopedie.py`, Rakousko/Vídeň: `tools/matricula.py` (seznamy) + `tools/matricula_snimek.js` (snímek přes Playwright),
-   vězni a oběti 2. sv. války: `tools/vezni.py`, `tools/arolsen.py`, `tools/mauthausen.py`, `tools/obeti.py`, Praha: `tools/ahmp_search.sh`;
+   Slovensko – sčítací hárky 1930 (kdo bydlel v domě): `tools/slovakiana.py`, vězni a oběti 2. sv. války: `tools/vezni.py`, `tools/arolsen.py`, `tools/mauthausen.py`, `tools/obeti.py`, Praha: `tools/ahmp_search.sh`;
    SOA Praha (střední Čechy), MZA Brno (knihy najde `tools/mza.py hledat`) a SOA Třeboň jen v prohlížeči, ostatní a Rakousko viz `reference/portaly.md`.
    Sňatek hledej nejdřív ve farnosti nevěsty.
    Je-li ke svazku index (rejstřík), začni jím. Starší matriky (před ~1784) bývají ve faře sousedního města.
@@ -337,6 +337,7 @@ Nedělej to pořád. Postup:
 |---|---|
 | `aron_search.py "Obec"` | najde svazky matrik na ARON (SOA Zámrsk); `"Obec,Fara"` zúží stejnojmenné obce |
 | `aron_img.py <apu> info / <snímek> 1 pracovni/x.jpg / link <n> / svazek`, `aron_img.py odkazy [--opravit]` | stáhne snímek, dá odkaz, zapíše svazek; opraví staré odkazy, které otevřou první snímek |
+| `slovakiana.py hledat / harok / stahni` | sčítací hárky 1930 a 1940 ze Slovakiany (Slovensko): index hárků obce s čísly domů, popis hárku, originály vybraných hárků (nejvýš 10 najednou, 1 požadavek za 10 s) |
 | `portafontium.py obec / fara / info / snimek / link / svazek` | matriky SOA Plzeň (západní Čechy, Porta fontium) bez prohlížeče (`obec` = knihy obce podle far) |
 | `ebadatelna.py link / a-link`, `snimek / a-snimek` | trvalý odkaz; náhled a výřez ze snímku uloženého z prohlížeče – stahovat nástroj nesmí (archiv od 2. 11. 2026 zakazuje), postup v `portaly.md` |
 | `cache.py stav / najdi <adresa> / uloz <soubor.json>`, `--nahled x.jpg` | sdílená mezipaměť obrázků (ukládá ji brzda sama); uložení snímku eBadatelny z prohlížeče, rovnou s náhledem 1600 px |
