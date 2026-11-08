@@ -11,12 +11,13 @@ description: Jak vést rodopisný výzkum s mnoha čtenáři najednou (ARON, SOA
 
 ## Zadání čtenáři (vždy)
 1. Jeden úkol, přesné jméno, rok, čp., apu knihy a kalibrace snímků z dřívějška.
-2. „Jedno stahování najednou, nespouštěj duplicity, nejdřív využij hotové cache `pracovni/cache_*`.“
+2. „Jedno stahování najednou, nespouštěj duplicity; nejdřív se podívej, jestli snímek už není v `pracovni/<svazek>/`
+   nebo v mezipaměti (`python3 -I tools/cache.py najdi <adresa>`).“
 3. „Vypiš i vedlejší nálezy: sourozence, děti, povolání, úmrtí, další manželství, kmotry, svědky, příbuzná jména, kde a kdy.“
 4. „U negativního výsledku přesně uveď knihu, snímky, roky a čitelnost.“
 
 ## Limity serverů
-- ARON vydrží asi 6–8 souběžných stahování celkem. Víc (20–40 procesů) ho zahltí a snímek pak trvá desítky minut. Kontrolovat `curl -m 20 https://aron.vychodoceskearchivy.cz/` a procesy `aron_img`.
+- ARON vydrží asi 6–8 souběžných stahování celkem. Víc (20–40 procesů) ho zahltí a snímek pak trvá desítky minut. Stav ověř přes brzdu: `python3 -I tools/slusne.py stav` a `python3 -I tools/smoke_test.py aron`; běžící stahování podle procesů `aron_img`.
 - Acta Publica (MZA Brno) nelze stahovat přes curl (HTTP 426). Čte se jen v prohlížeči; hromadné stahování dlaždic skriptem je považováno za obcházení ochrany – nedělat.
 
 ## Zápis nálezu (pořadí)
@@ -24,9 +25,11 @@ výřez `vyrez.py` → rámeček `ramecek.py` → JSON záznamu a přepisu → `
 Nová kniha = nový záznam `svazky.json` (jinak kontrola selže).
 
 ## Postup po generacích
-- Teploměr generací na stránce „Co hledáme“. Nejdřív dokončit generaci, pak další; co se najde navíc, uložit do odkladiště.
+- Nejdřív dokončit generaci, pak další (stav generací veď v `data/STAV.md`, „Rozpracováno“); co se najde navíc, uložit
+  do odkladiště `data/vedlejsi_nalezy.md`.
 - Větve, které uživatel označí jako prioritní, jdou nejhlouběji; ostatní se dotahují do stejné generace.
-- Jiné manželství, sourozenec nebo dítě předka se zapíše do `MANZELSTVI` / `SIDE`, jeho předky nehledáme.
+- Sourozence, děti a další manželství předka zapiš do `RODINA` v `data/osoby.py` (partner bez společného dítěte jako
+  `partner=[…]`), nejistý vztah jen jako poznámku do `SIDE`. Jejich předky nehledáme.
 
 ## Kvalita čtení (měřeno na vlastních ověřených zápisech)
 - **Plné rozlišení (úroveň 0, výřez jednoho zápisu)** čte český rukopis téměř bez chyb. **Poloviční rozlišení u kurentu je téměř nečitelné** (jména nahrazená „?“), hodí se jen na orientaci v knize.
