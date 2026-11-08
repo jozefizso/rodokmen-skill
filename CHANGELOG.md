@@ -6,6 +6,24 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
+## 0.11.1 – 8. 11. 2026
+
+**Opravy**
+- Obsahuje opravy z 0.10.1: doplňující skilly zapisují sourozence a další manželství do `RODINA`
+  (ne do neexistujícího `MANZELSTVI`) a neodkazují na části, které projekt nemá.
+- Zadání nezávislého pohledu (`tools/audit.py`) kontrolovalo vedlejší nálezy v neexistujícím `MANZELSTVI`
+  a čtenář `rodokmen-ctenar` hledal hotové snímky v neexistujícím `pracovni/cache_*`. Teď `RODINA` / `SIDE`
+  a mezipaměť `tools/cache.py`.
+
+## 0.10.1 – 8. 11. 2026
+
+**Opravy**
+- Doplňující skilly (vedení čtenářů, vedlejší nálezy) radily zapisovat sourozence a další manželství do `SIDE`
+  a neexistujícího `MANZELSTVI`. Patří do `RODINA` (druhý partner jako `partner=[…]`), jinak je web neukáže.
+- Pokyny už neodkazují na věci, které projekt nemá: teploměr generací, stránku souvislostí rodů, `data/domy.json`,
+  `pracovni/cache_*` (mezipaměť je `tools/cache.py`) a přímý `curl` místo brzdy `tools/slusne.py`.
+- Nový test hlídá, že pokyny jmenují jen sbírky dat, které projekt má.
+
 ## 0.11.0 – 8. 11. 2026
 
 **Nové**
@@ -19,11 +37,6 @@ Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to 
   Na archivy nechodí a nic nemění. Rozhodne, jak dál (pokračovat, opravit, přečíst znovu, změnit postup, zeptat se),
   a vypíše spotřebu tokenů. Nahrazuje ruční kopírování zpráv do ChatGPT; čerpá z limitů ChatGPT, ne z kreditů Claude.
   Bez Codexu připraví zadání pro pomocníka s čistým kontextem.
-
-**Opravy**
-- Doplňující skilly (vedení čtenářů, vedlejší nálezy) radily zapisovat sourozence a další manželství do `SIDE`
-  a neexistujícího `MANZELSTVI`. Patří do `RODINA` (druhý partner jako `partner=[…]`), jinak je web neukáže.
-  Nový test hlídá, že pokyny jmenují jen sbírky dat, které projekt má.
 
 ## 0.9.2 – 7. 11. 2026
 
