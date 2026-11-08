@@ -6,6 +6,15 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
+## 0.10.1 – 8. 11. 2026
+
+**Opravy**
+- Doplňující skilly (vedení čtenářů, vedlejší nálezy) radily zapisovat sourozence a další manželství do `SIDE`
+  a neexistujícího `MANZELSTVI`. Patří do `RODINA` (druhý partner jako `partner=[…]`), jinak je web neukáže.
+- Pokyny už neodkazují na věci, které projekt nemá: teploměr generací, stránku souvislostí rodů, `data/domy.json`,
+  `pracovni/cache_*` (mezipaměť je `tools/cache.py`) a přímý `curl` místo brzdy `tools/slusne.py`.
+- Nový test hlídá, že pokyny jmenují jen sbírky dat, které projekt má.
+
 ## 0.9.2 – 7. 11. 2026
 
 **Opravy**
