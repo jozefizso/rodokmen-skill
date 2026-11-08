@@ -232,6 +232,8 @@ pro každý web (dotaz 1 za 2 s, obrázky 10 za s) pro všechny procesy na poč�
 
 ### Pomocníci (subagenti) – šetrně
 Na velké kolo (např. „projdi 5 svazků a najdi všechny Nováky“) můžeš pustit 2–4 pomocníky paralelně.
+Postup kola (plán → čtenáři `rodokmen-ctenar` na Sonnetu → ověření → nezávislý audit `tools/audit.py` v Codexu →
+rozhodnutí, jak dál) popisuje skill `rodokmen-orchestrace` – načti ho před každým kolem s pomocníky.
 Každému dej přesné zadání (svazek, snímky, koho hledat, formát výsledku: klíč, snímek, souřadnice zápisu, přepis)
 a pravidla výše. Pomocník píše jen do `pracovni/pom_<větev>/`, **do `data/` nikdy**. Zapisuješ ty.
 Ať zmíní i zjevně související výskyty (viz krok 6 výše). Výstupy pomocníků v `pracovni/` nemaž, dokud nejsou vytěžené.

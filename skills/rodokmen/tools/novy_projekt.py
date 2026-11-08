@@ -11,7 +11,8 @@ Použití: python3 <skill>/tools/novy_projekt.py <cílová složka> [--ukazka] [
 
 Vytvoří: data/ (prázdné kostry nebo ukázka), web/ (Astro web), tools/ (kopie nástrojů),
 vyrezy/, zdroje/, dokumenty/, pracovni/, CLAUDE.md a AGENTS.md (stejný text, jeden zdroj pravdy je CLAUDE.md),
-.gitignore, .gitattributes (konce řádků LF i na Windows) a .claude/launch.json (náhled v Claude desktop).
+.gitignore, .gitattributes (konce řádků LF i na Windows), .claude/launch.json (náhled v Claude desktop)
+a .claude/agents/rodokmen-ctenar.md (pomocník-čtenář na levnějším modelu).
 Do .claude/settings.json doplní zákaz přímého curl/wget
 (stahování z archivů jde přes brzdu tools/slusne.py); ostatní nastavení v souboru nechá beze změny.
 
@@ -430,8 +431,9 @@ def main():
                 zapis(p, data.replace(b"\r\n", b"\n"))
     for d in ("vyrezy", "zdroje", "dokumenty", "pracovni"):
         os.makedirs(os.path.join(dst, d), exist_ok=True)
-    os.makedirs(os.path.join(dst, ".claude"), exist_ok=True)
-    for name in ("CLAUDE.md", ".gitignore", ".gitattributes", "poznamky_pro_skill.md", os.path.join(".claude", "launch.json")):
+    os.makedirs(os.path.join(dst, ".claude", "agents"), exist_ok=True)
+    for name in ("CLAUDE.md", ".gitignore", ".gitattributes", "poznamky_pro_skill.md", os.path.join(".claude", "launch.json"),
+                 os.path.join(".claude", "agents", "rodokmen-ctenar.md")):   # čtenář na Sonnetu (rodokmen-orchestrace)
         out = os.path.join(dst, name)
         if not os.path.lexists(out):
             copy(os.path.join(SKILL, "template", name), out)
