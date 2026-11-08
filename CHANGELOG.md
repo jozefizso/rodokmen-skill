@@ -6,6 +6,20 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
+## 0.11.0 – 8. 11. 2026
+
+**Nové**
+- Výzkum po kolech: plán → čtenáři → ověření → nezávislý pohled → rozhodnutí, jak dál (skill `rodokmen-orchestrace`).
+  Bez uživatele nejvýš 3 kola za sebou, pak Claude shrne výsledky a zeptá se, jestli pokračovat.
+- Čtenář matrik `rodokmen-ctenar` běží vždy na levnějším modelu (Claude Sonnet). Hledá a čte, výsledky ukládá
+  jen do `pracovni/`. Co najde, ověří hlavní model na snímku a teprve pak to zapíše. Nový projekt ho má
+  v `.claude/agents/`, starší ho dostane aktualizací projektu.
+- Nezávislý pohled z Codexu (`tools/audit.py`): po každém kole Codex zkontroluje zápisy proti výřezům a podívá se
+  na výsledky z jiné strany – jiné výklady, co se přehlíží a kde ještě hledat (smí vyhledávat na webu).
+  Na archivy nechodí a nic nemění. Rozhodne, jak dál (pokračovat, opravit, přečíst znovu, změnit postup, zeptat se),
+  a vypíše spotřebu tokenů. Nahrazuje ruční kopírování zpráv do ChatGPT; čerpá z limitů ChatGPT, ne z kreditů Claude.
+  Bez Codexu připraví zadání pro pomocníka s čistým kontextem.
+
 ## 0.9.2 – 7. 11. 2026
 
 **Opravy**
