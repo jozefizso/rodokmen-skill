@@ -58,7 +58,7 @@ zhruba po roce 1910 často online nebudou (kniha pokračuje za rok 1926, lhůta 
    Nedaří se? Ve křtu dítěte bývá (Praha ~1880–1890) připsané datum a místo sňatku rodičů – ověř ho v oddaných.
 7. **Rodina v katolické matrice chybí? Zkus evangelickou nebo židovskou.** Po toleranci (1781) vedly vlastní matriky
    evangelické sbory (a. v. i h. v.), jeden sbor pokrýval desítky obcí; v ARONu mají signatury „R …“ a `aron_search.py`
-   je najde podle obce. Ve východních Čechách časté (Rychnovsko, Dobrušsko, Opočensko). Židovské matriky viz `portaly.md`.
+   je najde podle obce. Ve východních Čechách časté (Rychnovsko, Dobrušsko, Opočensko). Židovské matriky (Národní archiv, nástroj `vademecum.py`) viz `portaly.md`.
    Ve 20. století (1920–1945) zkus i **civilní matriky** lidí bez vyznání u okresních úřadů (vyzkoušeno v SOA Třeboň, viz `portaly.md`).
    **Smíšená manželství:** od roku 1868 šli synové po otci a dcery po matce, pokud se rodiče nedohodli jinak.
    Před rokem 1868 byly při katolickém otci katolické všechny děti. Dceru evangelíka a katoličky proto hledej
@@ -113,6 +113,11 @@ vsi a sňatek byl v oddílu městyse; ves měla oddíl až na snímcích 380–4
   `overit.py … --kontrast`; jinak `magick x.jpg -colorspace Gray -contrast-stretch 2%x35% x_k.jpg`). Stránku
   **neprohlašuj za prázdnou a zápis za nenalezený**, dokud ji nezkusíš s kontrastem. Do webu pak dej kontrastní výřez
   a poznamenej to v přepisu. Zelený tón snímku: `magick x.jpg -channel G -separate -normalize x_k.jpg`.
+- **Kniha bez rejstříku** (hledáš rodiče podle příjmení): stáhni jen sloupec otce (nebo matky) z mnoha snímků
+  v nízkém rozlišení (`aron_img.py <apu> <n> 2 pracovni/x/o<n>.jpg x0,y0,x1,y1` – výřez nastav podle sloupce na jednom snímku, víc
+  najednou přes `xargs -P 4`) a slož je po osmi vedle sebe (`magick montage o1.jpg … o8.jpg -tile 8x1 -geometry +4+0 m.jpg`).
+  Úroveň 2 na čtení příjmení stačí, menší ne. Nalezený zápis pak stáhni celý v úrovni 1 nebo 0 (0 = plné rozlišení).
+  Nezapomeň na nemanželské děti – otec je prázdný a příjmení je ve sloupci matky.
 - Do ~1780 latina nebo čeština, pak hodně němčina (kurent), od ~1860 často čeština, ve 20. století čeština.
 - Česká jména v němčině/latině: Johann/Joannes = Jan, Wenzel/Wenceslaus = Václav, Joseph = Josef, Franz/Franciscus = František,
   Maria = Marie, Anna, Katharina = Kateřina, Barbara = Barbora, Magdalena = Majdalena/Magdaléna, Theresia = Terezie,
@@ -198,6 +203,8 @@ vsi a sňatek byl v oddílu městyse; ves měla oddíl až na snímcích 380–4
   matky (dítě se často narodilo u jejích rodičů).
 - Nevěsta mívala 18–28, ženich 22–32; děti po 1,5–3 letech.
 - „Vdovec“ u ženicha = hledej první manželství a děti z něj.
+- Při přepisu křtu ověř měsíc podle záhlaví příslušného sloupce a nepopleť číslo domu porodní báby
+  (*obstetrix*, *Hebamme*) s rodištěm dítěte.
 
 ## Stavy údajů v datech
 | stav | kdy |
@@ -221,6 +228,15 @@ vsi a sňatek byl v oddílu městyse; ves měla oddíl až na snímcích 380–4
 - Index nenašel ≠ zápis neexistuje. Zapiš, co přesně jsi prošel.
 - Oddací zápis uvádí „narozen dle mat. IV f. 149“ – podle folia najdeš křest jedním stažením (folio ≈ snímek − posun knihy).
 - Čtení pomocníků (subagentů) i jiných nástrojů na čtení písma vždy ověř sám na snímku (princip čtyř očí, SKILL.md → Pomocníci).
+- Velké kolo s pomocníky (zkušenost s 10 souběžnými): společná pravidla dej do jednoho souboru (`pracovni/ZADANI_POMOCNIK.md`)
+  a v zadání na něj jen odkaž. Do pravidel patří: obrázek pro čtení zmenšit na max. 2000 px (jinak se nástroji
+  nezobrazí a pomocník „čte“ naslepo), **nikdy nepsat přepis zápisu, který neviděl**, ukládat výsledek průběžně po každém
+  nálezu (pomocník může skončit předčasně), u nálezu uvést soubor výřezu, ze kterého četl. Kurent 1. poloviny 19. století
+  ve středním rozlišení ARON (úroveň 1) spolehlivě nepřečte – chtěj plné rozlišení a výřez sloupce. Víc než ~5 pomocníků
+  současně na ARON ho přetíží (snímek pak trvá minuty) – rozlož je mezi archivy (ARON, Porta fontium, eBadatelna).
+- Nemanželské dítě matky se stejným jménem: rodinný strom může „dosadit“ za rodiče prarodiče (nemanželská dcera
+  svobodné matky vedená jako dcera matčina bratra). Rozhodne zápis o sňatku nebo úmrtí dítěte (uvádí matku) a to, zda je v matrice
+  jiné dítě daného jména.
 
 ## Technické pasti (macOS, zsh) – napiš je i pomocníkům do zadání
 - Shell je zsh: `for a in "x y z"; do set -- $a` slova nerozdělí (v zsh `${=a}`); `ls F*` bez shody = chyba
@@ -241,7 +257,7 @@ vsi a sňatek byl v oddílu městyse; ves měla oddíl až na snímcích 380–4
   přesměrování do souboru (soubor z `… --osoby > x.py` by jinak vznikl v cp1250; ve Windows PowerShellu 5.1 `>` dokonce
   zapisuje UTF-16 – přesměrovávej v Git Bash). Proměnná `PYTHONUTF8` s `-I` nefunguje.
 - ImageMagick je `magick`, nikdy `convert` (`convert` je ve Windows systémový nástroj na převod disku z FAT na NTFS).
-  Po instalaci přes winget je `magick` v PATH až po restartu Claude Code. Písmo pro `-annotate`: `-font C:/Windows/Fonts/arial.ttf`.
+  Po instalaci přes winget je `magick` v PATH až po restartu agenta. Písmo pro `-annotate`: `-font C:/Windows/Fonts/arial.ttf`.
 - Limit délky příkazové řádky je 32 767 znaků – stovky souborů (dlaždic) v jednom příkazu `magick` neprojdou
   (WinError 206); skládej po řádcích.
 - Skripty `.sh` přes Git Bash (`bash tools/…`). Markdown a JSON nikdy neupravuj `sed -i` (escapy v Git Bash rozbijí

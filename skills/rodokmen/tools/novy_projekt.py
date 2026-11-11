@@ -10,9 +10,12 @@ Použití: python3 <skill>/tools/novy_projekt.py <cílová složka> [--ukazka] [
                   novou verzi šablony jako základ; soubor v projektu nezmění a další aktualizace ho už nehlásí
 
 Vytvoří: data/ (prázdné kostry nebo ukázka), web/ (Astro web), tools/ (kopie nástrojů),
-vyrezy/, zdroje/, dokumenty/, pracovni/, CLAUDE.md, .gitignore, .gitattributes (konce řádků LF i na Windows)
-a .claude/launch.json (náhled v Claude desktop). Do .claude/settings.json doplní zákaz přímého curl/wget
+vyrezy/, zdroje/, dokumenty/, pracovni/, CLAUDE.md a AGENTS.md (stejný text, jeden zdroj pravdy je CLAUDE.md),
+.gitignore, .gitattributes (konce řádků LF i na Windows), .claude/launch.json (náhled v Claude desktop)
+a .claude/agents/rodokmen-ctenar.md (pomocník-čtenář na levnějším modelu).
+Do .claude/settings.json doplní zákaz přímého curl/wget
 (stahování z archivů jde přes brzdu tools/slusne.py); ostatní nastavení v souboru nechá beze změny.
+
 Existující data nepřepisuje.
 Do .skill_sablona/ uloží kopii šablony web/ a tools/, ze které projekt vznikl (patří do gitu s projektem).
 Aktualizace staršího projektu (znovu spustit na stejnou složku) rozhodne o každém souboru web/ a tools/ podle
@@ -417,7 +420,7 @@ def main():
     tools = os.path.join(dst, "tools")
     os.makedirs(tools, exist_ok=True)
     nastroje = sorted(f for f in os.listdir(os.path.join(SKILL, "tools"))
-                      if f.endswith((".py", ".sh")) and f != "novy_projekt.py")
+                      if f.endswith((".py", ".sh", ".js")) and f != "novy_projekt.py")
     aktualizuj(os.path.join(SKILL, "tools"), dst, "tools", nastroje, zaloha, vysl, stary, cek)
     uloz_cekajici(dst, cek)
     for f in nastroje:   # i ponechaný vlastní .sh s CRLF: Git Bash by skript nespustil
@@ -428,12 +431,20 @@ def main():
                 zapis(p, data.replace(b"\r\n", b"\n"))
     for d in ("vyrezy", "zdroje", "dokumenty", "pracovni"):
         os.makedirs(os.path.join(dst, d), exist_ok=True)
-    os.makedirs(os.path.join(dst, ".claude"), exist_ok=True)
-    for name in ("CLAUDE.md", ".gitignore", ".gitattributes", "poznamky_pro_skill.md", os.path.join(".claude", "launch.json")):
+    os.makedirs(os.path.join(dst, ".claude", "agents"), exist_ok=True)
+    for name in ("CLAUDE.md", ".gitignore", ".gitattributes", "poznamky_pro_skill.md", os.path.join(".claude", "launch.json"),
+                 os.path.join(".claude", "agents", "rodokmen-ctenar.md")):   # čtenář na Sonnetu (rodokmen-orchestrace)
         out = os.path.join(dst, name)
         if not os.path.lexists(out):
             copy(os.path.join(SKILL, "template", name), out)
+    # AGENTS.md má stejný text jako CLAUDE.md – jeden zdroj pravdy, ať se návod pro Cursor a Claude Code nerozejde.
+    # Claude Code čte CLAUDE.md, Cursor AGENTS.md. Když v projektu CLAUDE.md už je (třeba s pravidly pro Windows),
+    # převezme se on, ne šablona znovu. Šablona template/AGENTS.md je tentýž text pro člověka, který se dívá do šablony.
+    agents = os.path.join(dst, "AGENTS.md")
+    if not os.path.lexists(agents):
+        copy(os.path.join(dst, "CLAUDE.md"), agents)
     nastaveni(dst, True if "--hlidac" in sys.argv else False if "--bez-hlidace" in sys.argv else None)
+
     with open(os.path.join(dst, ".skill_verze"), "w", encoding="utf-8") as f:   # SKILL.md podle něj nabídne aktualizaci
         f.write(open(os.path.join(SKILL, "VERZE"), encoding="utf-8").read())
     print("Projekt připraven:", dst)
