@@ -13,11 +13,14 @@ Vedeš člověka, který **nikdy nedělal genealogii ani neprogramoval**, od rod
 až k hezkému rodinnému webu. Ty děláš technickou práci (stahování snímků, čtení, zápis dat, web);
 uživatel dodává znalost rodiny, rozhoduje sporná místa a schvaluje, co jde ven.
 
-**Složka tohoto skillu** (dále `SKILL_DIR`) je ta, kterou ti systém ukázal při načtení skillu („Base directory“).
+**Složka tohoto skillu** (dále `SKILL_DIR`) je ta, ve které leží tento `SKILL.md`.
+V Claude Code ji systém při načtení ukáže jako „Base directory“, v Codexu jako cestu k `SKILL.md` v seznamu skillů.
+V Cursoru je to osobní skill `~/.cursor/skills/rodokmen` (viz `reference/cursor.md`); v OMP použij cestu uvedenou
+při načtení skillu nebo `realpath skill://rodokmen`.
 Najdeš v ní `tools/` (nástroje), `template/` (šablona projektu a webu) a `reference/` (podrobné návody – čti je, až je potřebuješ):
 `instalace.md` (příprava počítače, Windows), `matriky.md` (čtení matrik, pasti), `portaly.md` (archivy), `metodika.md`
 (spojování záznamů, ztotožnění, mrtvé body, prameny mimo ČR), `data.md` (formát dat, import stromu), `pribehy.md`,
-`web.md`, `soukromi.md`.
+`web.md`, `soukromi.md`, `cursor.md` (Cursor, Codex, OMP).
 
 ## Jak mluvit s uživatelem
 - **Česky, stručně, lidsky.** Žádný žargon bez vysvětlení (Kekulé, N/O/Z, apu…). Místo „commitnu“ řekni „uložím“.
@@ -41,13 +44,15 @@ Najdeš v ní `tools/` (nástroje), `template/` (šablona projektu a webu) a `re
    - `AKTUALIZUJ_PROJEKT` → nabídni `python3 -I SKILL_DIR/tools/novy_projekt.py <složka projektu>` (data zůstanou,
      vlastní úpravy webu a `tools/` se sloučí s novou šablonou), pak ve `web/` `npm install`. Výpis projdi s uživatelem
      podle `reference/web.md` → Aktualizace staršího projektu. Odmítne-li, připomeň to až příště. Po aktualizaci ať
-     uživatel restartuje Claude Code (změny v `.claude/settings.json` se jinak nemusí projevit). Hlásí-li výpis
+     uživatel restartuje agenta (změny v `.claude/settings.json` se jinak nemusí projevit). Hlásí-li výpis
      „Hlídač sítě: vypnutý“, zeptej se, jestli ho zapnout (`--hlidac`, vysvětlení v `reference/instalace.md`).
+     Po aktualizaci spusť `python3 -I tools/aron_img.py odkazy`: odkazy na ARON z dřívějších verzí otevírají knihu
+     na prvním snímku – opraví je `… odkazy --opravit`.
    - Hlídač sítě kontrolu zamítne (starší projekt) → spusť ji přes brzdu: `python3 -I tools/slusne.py SKILL_DIR/tools/verze.py <složka projektu>`.
 2. Projekt ještě není → **Fáze 0**.
 
 ## Fáze 0 – Příprava (jednou)
-**Než začneš, přečti `reference/instalace.md`** a postupuj podle něj: kontrola nástrojů (Python ≥ 3.9, Node ≥ 20, ImageMagick, git), certifikáty na
+**Než začneš, přečti `reference/instalace.md`** a postupuj podle něj: kontrola nástrojů (Python ≥ 3.9, Node ≥ 22.19.0, ImageMagick, git), certifikáty na
 macOS, Windows, prohlížeč pro archivy, založení projektu (`python3 -I SKILL_DIR/tools/novy_projekt.py <složka>`,
 volitelně `--ukazka` a `--hlidac`), `git init`, „Pro koho“ ve `STAV.md` a název webu.
 **Windows:** ve všech příkazech skillu místo `python3 -I` piš `python -I -X utf8` (`python3` je tam nefunkční alias
@@ -58,7 +63,10 @@ Cíl: znát co nejvíc o 3–4 generacích nazpět, než sáhneš do matrik.
 - Ptej se postupně (ne dotazníkem naráz): výchozí osoba (pro koho rodokmen je – on sám, partner, dítě?), rodiče,
   prarodiče, pradědečci: **jména, rodná příjmení žen, roky a místa narození, sňatky, úmrtí (a kde jsou pohřbeni), řemesla, domy (čísla popisná!)**.
 - Požádej o dokumenty: rodné a oddací listy, domovské listy, parte, fotky (i náhrobků), rodinné kroniky, paměti, staré dopisy,
-  výpisy z MyHeritage/Geni od příbuzných. Ať je dá do `dokumenty/`. Přečti je celé (PDF/fotky) a vytěž.
+  výpisy z MyHeritage/Geni od příbuzných. Originály ukládej lokálně do `dokumenty/originaly/` (je ignorované gitem),
+  pracovní převody do `pracovni/`; na web patří jen samostatně schválené výřezy. Přečti dokumenty celé (PDF/fotky) a vytěž.
+  Soubor `.doc` nejdřív zkontroluj lokálně: pokud začíná RTF hlavičkou `{\rtf`, otevři nebo převeď ho ve Wordu či
+  LibreOffice. Nepoužívej online převodníky a originál ani pracovní převod neposílej na web.
 - Doporuč zeptat se nejstarších žijících příbuzných – teď, dokud to jde. Nabídni seznam otázek.
 - **Příbuzenství ber doslova, jak ho rodina řekla** („pradědeček babičky“ ≠ „otec babičky“) – nikdy ho neopravuj podle
   toho, co se ti hodí do dat. Při nejasnosti se zeptej. Ztotožnění jen podle křestního jména veď jako `prob` s poznámkou.
@@ -82,9 +90,16 @@ Základní smyčka pro každou osobu:
    sňatky 75, úmrtí 30; `matriky.md` → Lhůty). Mladší údaje jsou na matričním úřadě – zápis starší lhůty tam
    dostane kdokoli, mladší jen rodina (`matriky.md` → Lhůty); zapiš do `data/archivni_dotazy.md`.
 3. **Najdi svazek**: podle obce → farnost → archiv. ARON: `python3 -I tools/aron_search.py "Obec"`, SOA Plzeň:
-   `python3 -I tools/portafontium.py obec "Obec"`, Praha: `tools/ahmp_search.sh`; SOA Praha, MZA Brno a SOA Třeboň
-   jen v prohlížeči, ostatní v `reference/portaly.md`. Sňatek hledej nejdřív ve farnosti nevěsty. Je-li ke svazku
-   rejstřík, začni jím.
+   `python3 -I tools/portafontium.py obec "Obec"`, SOA Litoměřice: `tools/litomerice.py`, židovské matriky (Národní
+   archiv): `tools/vademecum.py`, Brno – osobnosti, ulice, hroby: `tools/brno_encyklopedie.py`, Rakousko/Vídeň:
+   `tools/matricula.py` (seznamy) + `tools/matricula_snimek.js` (snímek přes Playwright), Slovensko – sčítací hárky
+   1930 (kdo bydlel v domě): `tools/slovakiana.py`, vězni a oběti 2. sv. války: `tools/vezni.py`, `tools/arolsen.py`,
+   `tools/mauthausen.py`, `tools/obeti.py`, Praha: `tools/ahmp_search.sh`; SOA Praha, MZA Brno (knihy najde
+   `tools/mza.py hledat`) a SOA Třeboň jen v prohlížeči, ostatní v `reference/portaly.md`. Sňatek hledej nejdřív
+   ve farnosti nevěsty. Je-li ke svazku rejstřík, začni jím.
+   Nástroj najednou přestal fungovat? Portál se nejspíš změnil: `python3 -I tools/smoke_test.py <nástroj>` řekne,
+   jestli je to výpadek (NEDOSTUPNÉ), nebo změna stránky (CHYBA) – pak to zapiš do `poznamky_pro_skill.md`
+   a řiď se obecným postupem v `portaly.md`.
 4. **Stáhni snímek** do `pracovni/<svazek>/` a nech ho tam – před dalším stažením se podívej, jestli ho už nemáš.
    Najdi zápis, **přečti ho sám ze snímku** (přiblíž si výřez v plném rozlišení).
 5. **Zapiš nález** (vždy všech 6 kroků, i když to zdržuje):
@@ -93,9 +108,11 @@ Základní smyčka pro každou osobu:
    3. výřez: `python3 -I tools/vyrez.py pracovni/<stránka>.jpg <klíč> x0,y0,x1,y1` (zlomky 0–1 stránky; velkoryse – celý zápis s hlavičkou sloupců a okrajovými poznámkami),
    4. rámeček čteného místa: `python3 -I tools/ramecek.py <klíč> x0,y0,x1,y1` (zlomky 0–1 **výřezu** `vyrezy/<klíč>.jpg`, ne stránky) a **prohlédni si** `pracovni/ramecek_<klíč>.jpg`,
    5. přepis originálu a český překlad do `data/prepisy.json` (nejistá místa „(?)“, nečitelná „[…]“),
-   6. osobu/osoby do `data/osoby.py` (`f` fakta, `r` klíč zápisu, `st="doc"`), sourozence a kmotry-příbuzné do `SIDE`;
+   6. osobu/osoby do `data/osoby.py` (`f` fakta, `r` klíč zápisu, `st="doc"`), sourozence, jejich partnery a děti do `RODINA`, nejisté příbuzné jen jako poznámku do `SIDE`;
       klíč zápisu k existující osobě přidej `python3 -I tools/zapis.py odkaz <číslo osoby | část jména z SIDE> <klíč>`.
    Nová obec předků → `tools/mista.py pridej "Obec"` (mapa), nový pradědeček nebo prababička (8–15) → rod do `LINES`.
+   Při převzetí staršího výzkumu bez původních snímků nevytvářej náhradní výřezy ani rámečky. Zachovej informaci,
+   že podklad chybí; souhrn obsahu není doslovný přepis a chybějící výřez či rámeček dál hlásí `kontrola.py`.
 6. **Zapiš hledání do deníku** `data/research_log.md` – i neúspěšné, s rozsahem (které roky / snímky jsi prošel).
    **Zjevně související výskyt** po cestě (vzácné příjmení rodu, stejný dům, jméno z rodinného vyprávění) zapiš do
    výsledku se snímkem – je to stopa, ne doklad. Když se hledání zasekne, projdi deník právě kvůli takovým stopám.
@@ -110,12 +127,17 @@ Pravidla, která chrání kvalitu:
   Nikdy `sed -i` ani skript, který soubor přepíše celý – rozbije formát a v historii je pak změněný celý soubor.
 - **`doc` jen to, co jsi četl přímo na snímku.** Shoda jména a doby bez přímého dokladu = `prob` + poznámka proč.
 - **Nic nedomýšlej.** Nejisté čtení „(?)“, rozpory zapiš do `ISSUES`. Písaři se pletli (jména sourozenců, věk, Anna/Františka).
+- Při změně Kekulého čísel zkontroluj a aktualizuj i odkazy na čísla osob: `SIDE.k`, klíče `LINES`,
+  číselné odkazy v `web.json` a odkazy na osoby v příbězích. Zkontroluj také `SAME` a další textové odkazy.
 - **Čti celý zápis včetně okrajů** – pozdější poznámky o úmrtí, sňatku, legitimaci bývají nejcennější.
 - **Rodina přes čísla domů**: stejné číslo popisné a řemeslo přes generace je silná stopa; v knize hledej celé domácnosti.
 - **Ztotožnění míst ověř** podle panství/kraje v zápisu (německé „Langenau“ je v Čechách několikrát – rozhodne
   „bey Hohenelbe“ = u Vrchlabí).
 - U úředníků, vojáků, lékařů, učitelů, farářů zkus noviny a ročenky (`portaly.md` → Noviny); pro 17. století soupis
   poddaných 1651, berní rulu a gruntovní knihy (`portaly.md` → Starší prameny) – matriky před ~1650 skoro nejsou.
+- **Když matrika nestačí** (původ přistěhovalce či vojáka, chybějící rodiče): písemnosti vrchnosti – soupisy poddaných,
+  svatební smlouvy, sirotčí a pozůstalostní spisy (fond „Velkostatek <panství>“); u mlynářů karta mlýna na vodnimlyny.cz;
+  zemské desky jen u svobodníků a majitelů statků (`portaly.md` → Starší prameny).
 - **Spornou věc**, kterou nerozhodneš (dvě čtení, dva kandidáti), ukaž uživateli s výřezem a nech ho rozhodnout; do té
   doby `prob`. Desítky sporných čtení po velkém kole nedávej do chatu po jednom: sesbírej je do
   `pracovni/sporna_cteni.json` (klíč zápisu, výřez, otázka, možnosti, tvůj návrh) a udělej jednu stránku, kde
@@ -150,7 +172,10 @@ pro každý web pro všechny procesy na počítači.
 ### Pomocníci (subagenti) – šetrně
 Na velké kolo (např. „projdi 5 svazků a najdi všechny Nováky“) můžeš pustit 2–4 pomocníky paralelně, každého na
 jinou větev nebo archiv (jedno kolo ≈ 15–25 nových předků). Stojí hodně kreditů – před velkým kolem řekni uživateli,
-co plánuješ a proč, a nech si to schválit. **Spouštěj je na levnějším modelu** (Agent s `model: "sonnet"`):
+co plánuješ a proč, a nech si to schválit. Postup kola (plán → čtenáři `rodokmen-ctenar` na Sonnetu → ověření →
+nezávislý audit `tools/audit.py` v Codexu → rozhodnutí, jak dál) popisuje skill `rodokmen-orchestrace` – načti ho před
+každým kolem s pomocníky. **Spouštěj je na levnějším modelu** (pokud to prostředí podporuje a dovoluje; vhodný model
+vyber podle jeho pravidel):
 hledání a první čtení zvládnou, ověření na snímku a zápis do dat děláš ty. Řekni to uživateli, ať ví, proč kredity
 tolik neubývají.
 - Přesné zadání: svazek, snímky, koho hledat, formát výsledku (klíč, snímek, souřadnice zápisu, přepis), technické
@@ -170,25 +195,30 @@ Linie končí, když matriky mlčí (nemanželské dítě bez otce, shořelé kn
 v 17. století. Zapiš to do `ISSUES`/`archivni_dotazy.md` (náhradní prameny: `metodika.md` → Mrtvé body) a jdi na jinou
 větev. Průběžně aktualizuj `data/STAV.md` („Rozpracováno“), aby šlo kdykoli navázat.
 
-## Fáze 3 – Zajímavosti a Příběh hlavního rodu
+## Fáze 3 – Zajímavosti a příběhy rodů
 Podrobně `reference/pribehy.md`. Tohle rodina na webu čte nejradši – nenechávej to na konec.
 - **Zajímavosti** sbírej **průběžně** do `data/zajimavosti.md` a řekni je uživateli; po každém kole spusť
-  `python3 -I tools/napady.py` (svatby krátce před porodem, rod v jednom domě, dlouhověkost, epidemie…), ověř a napiš.
-- **„Příběh <hlavního rodu>“**: jakmile má hlavní rod ~5 doložených generací, nabídni ho. Koncept napiš **do chatu**
-  ke schválení, pak `data/pribeh.md` a ve `web.json` menu, tlačítko a úvod.
+  `python3 -I tools/napady.py` (svatby krátce před porodem, rod v jednom domě, dlouhověkost, epidemie…) a
+  `python3 -I tools/osobnosti.py` (vzdělanci, duchovní, umělci, funkcionáři, vojáci, sportovci – s tipy, kde hledat víc;
+  potvrzené označ v `osoby.py` polem `vyz`, web je ukáže na stránce „Osobnosti“). Ověř a napiš.
+- **Příběhy rodů:** jakmile má hlavní rod ~5 doložených generací, nabídni příběh. Koncept napiš **do chatu** ke
+  schválení, pak ho ulož do `data/pribeh.md`. Pro více příběhů používej `data/pribehy/<slug>.md`; viz `reference/pribehy.md`.
+  Soukromí zkontroluj ve všech příbězích, ne pouze v hlavním. Je hlavní věcí na úvodní stránce webu.
 
 ## Fáze 4 – Web
 Podrobně `reference/web.md`. Ve zkratce:
-1. `cd web && npm install` (jednou), pak `npm run nahled` → http://localhost:4321 – ukaž uživateli. V cloudovém
-   prostředí (claude.ai) localhost neuvidí – pošli mu snímky stránek nebo nasaď náhled.
+1. `cd web && npm ci` (čistá instalace), pak `npm run nahled` → http://localhost:4321 – ukaž uživateli. Použij Node.js
+   ≥22.19.0 pro instalaci i build. V cloudovém prostředí (claude.ai i cloud agent v Cursoru) localhost neuvidí – pošli mu snímky stránek nebo nasaď náhled.
 2. Nastav `data/web.json`: název, úvod, kontakt a **přihlašovací otázku a odpověď** (web je jen pro rodinu).
+   Web má i stránky **Statistiky** a **Domy** (mapa domů předků – polohy „obec čp.“ z matrik dohledá skill
+   **stare-adresy**, jeho `domy.geojson` patří do `data/domy/`; viz `reference/web.md`).
 3. Po každé změně dat: `npm run data && npm run build`. Hlášky `POZOR: nefunkční odkaz` oprav hned. Po větším kole
    zkontroluj i texty úvodu ve `web.json` (`uvod`, `zajimavosti_na_uvodu`) – zastarávají.
-4. Před zveřejněním projdi s uživatelem `reference/soukromi.md` (co na webu bude, žijící lidé, hlášky `CITLIVÉ`
+4. Před zveřejněním projdi s uživatelem `reference/soukromi.md` (co na webu bude, včetně všech `data/pribehy/*.md`, žijící lidé, hlášky `CITLIVÉ`
    z `kontrola.py`; schválené zapiš do `web.json` → `citlive_schvaleno`).
 
 ## Fáze 5 – Zveřejnění (volitelné, jen se souhlasem)
-Výchozí je **Cloudflare** (zdarma, bez limitu nasazení): `npx -y wrangler@4 login`, název adresy do `web.json`
+Výchozí je **Cloudflare** (zdarma, bez limitu nasazení): `npx -y wrangler@4 login` je interaktivní – dej je uživateli jako `! npx -y wrangler@4 login` (v Claude Code; jinde jako blok ke zkopírování, bez `!`), název adresy do `web.json`
 (`cloudflare.nazev`) a `npm run nasadit-cloudflare` – postup v `reference/web.md`. Kdo už má web na Netlify, pokračuje
 `npm run nasadit`. Nic nezveřejňuj bez výslovného souhlasu uživatele. Po zveřejnění **nenasazuj po každém kole**
 (Netlify zdarma vystačí asi na 20 nasazení měsíčně) – obnovuj jen náhled a nasazuj na pokyn nebo jednou na konci sezení.
@@ -216,17 +246,21 @@ připomeň uživateli, že je může poslat správci skillu:
 - Nepřepisuj data bez zálohy v gitu; po větším kroku navrhni uložení (`git add -A && git commit -m "…"`).
 
 ## Soubory projektu
-`data/`: `STAV.md` (vstupní bod), `osoby.py` (předci, `LINES`, `SIDE`, `ISSUES`, `HYPOTEZY`, `SAME`), `zaznamy.json`,
+`data/`: `STAV.md` (vstupní bod), `osoby.py` (předci, `LINES`, `RODINA`, `SIDE`, `ISSUES`, `HYPOTEZY`, `SAME`), `zaznamy.json`,
 `svazky.json`, `prepisy.json`, `zvyrazneni.json`, `research_log.md` (deník), `udaje_od_rodiny.md`, `archivni_dotazy.md`,
-`zajimavosti.md`, `pribeh.md`, `web.json`, `dokumenty.json`, `mista.json` (formát `reference/data.md`). Dál `vyrezy/`
+`zajimavosti.md`, `pribeh.md`, `pribehy/*.md`, `web.json`, `dokumenty.json`, `mista.json` (formát `reference/data.md`). Dál `vyrezy/`
 a `zdroje/` (výřezy pro web / plné rozlišení), `dokumenty/` (originály od rodiny), `pracovni/` (nejde na web),
 `poznamky_pro_skill.md`, `tools/` (kopie ze skillu – aktualizuje se celý projekt přes `novy_projekt.py`), `web/`.
 
 ## Nástroje (`tools/`, z kořene projektu `python3 -I tools/<nástroj>`, skripty `.sh` přes `bash`; přepínače vypíše `--help`)
 | Nástroj | K čemu |
 |---|---|
-| `aron_search.py`, `aron_img.py` | ARON (SOA Zámrsk): hledání svazků; snímek, trvalý odkaz, zápis svazku |
+| `aron_search.py`, `aron_img.py` | ARON (SOA Zámrsk): hledání svazků; snímek, trvalý odkaz, zápis svazku; `aron_img.py odkazy [--opravit]` opraví staré odkazy, které otevřou první snímek |
 | `portafontium.py` | SOA Plzeň (Porta fontium) bez prohlížeče |
+| `litomerice.py`, `mza.py` | SOA Litoměřice; MZA Brno (`mza.py hledat` najde knihy) |
+| `vademecum.py`, `brno_encyklopedie.py`, `matricula.py`, `matricula_snimek.js` | židovské matriky (Národní archiv); Brno – osobnosti, ulice, hroby; Matricula – seznamy a snímek přes Playwright |
+| `slovakiana.py hledat / harok / stahni` | sčítací hárky 1930 a 1940 ze Slovakiany (Slovensko): index hárků obce s čísly domů, popis hárku, originály vybraných hárků (nejvýš 10 najednou, 1 požadavek za 10 s) |
+| `vezni.py`, `arolsen.py`, `mauthausen.py`, `obeti.py` | vězni a oběti 2. světové války |
 | `ebadatelna.py` | SOA Praha: trvalý odkaz, náhled a výřez ze snímku uloženého z prohlížeče (stahovat nesmí) |
 | `ahmp_search.sh`, `ahmp_scan.py` | matriky Prahy (AHMP) |
 | `policie_prihlasky.py` | pražské policejní přihlášky 1850–1914 |
@@ -239,7 +273,10 @@ a `zdroje/` (výřezy pro web / plné rozlišení), `dokumenty/` (originály od 
 | `vyrez.py`, `ramecek.py`, `overit.py` | výřez zápisu (zlomky stránky), rámeček (zlomky výřezu, `--pozn` poznámka), ověření čtení na dvou polovinách |
 | `zapis.py` | zápis do `data/*.json` a odkazů `r` v `osoby.py` beze změny formátu |
 | `mista.py` | místa pro mapu (OpenStreetMap) |
-| `napady.py` | náměty na zajímavosti z dat |
+| `napady.py`, `osobnosti.py` | náměty na zajímavosti z dat; významné osobnosti rodokmenu |
+| `statistiky.py`, `domy_export.py` | stránky Statistiky a Domy |
+| `audit.py` | nezávislá kontrola zápisů v Codexu (`rodokmen-orchestrace`) |
+| `smoke_test.py` | zjistí, jestli nástroj nefunguje kvůli výpadku portálu, nebo kvůli změně stránky |
 | `kontrola.py` | kontrola dat; hlásí i citlivé údaje na webu a kdy psát příběh |
 | `slusne.py` | brzda proti zablokování archivem (`stav`, `zastav`, `odblokuj`) |
 | `export_web.py`, `fan_chart.py` | data → web (volá ho `npm run data`); vějíř jako plakát k tisku |

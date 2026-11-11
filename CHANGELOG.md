@@ -6,6 +6,56 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
+## 0.11.2 – 11. 11. 2026
+
+Verze 0.10.0 až 0.11.1 tohoto forku přeskládané na nejnovější upstream (0.10.0 od sarsonj): zachovává všechny změny
+forku a přebírá přepracované návody z upstreamu.
+
+**Nové**
+- Základ je upstream 0.10.0: kratší `SKILL.md`, `reference/instalace.md`, česká `metodika.md`, Cloudflare s vlastním
+  názvem webu, opravy Windows a BOM, matriční úřad podle § 25b.
+- Zůstává vše z forku: výzkum po kolech (`rodokmen-orchestrace`, čtenář `rodokmen-ctenar` na Sonnetu, nezávislý
+  pohled `tools/audit.py`), sčítací hárky 1930 ze Slovakiany, nástroje pro další archivy (Litoměřice, Brno, židovské
+  matriky, Matricula, vězni a oběti), `RODINA` a stromový graf, více příběhů, stránky Statistiky a Domy, Cursor, Codex a OMP.
+
+**Opravy**
+- Při slučování zvoleno: `npm ci` místo `npm install` (zamčené verze), `RODINA` se čte i z exportu webu a hlídá
+  `kontrola.py`, vějíř si ponechává plynulý zoom (#165) a soubory s BOM čtou i příběhy a deník.
+- Návody z forku (Node ≥ 22.19.0, `AGENTS.md`, sourozenci a další manželství do `RODINA`, vodnimlyny.cz, zemské desky)
+  přepsané do nové struktury návodů; `SKILL.md` zůstal pod 30 KB.
+
+## 0.11.1 – 8. 11. 2026
+
+**Opravy**
+- Obsahuje opravy z 0.10.1: doplňující skilly zapisují sourozence a další manželství do `RODINA`
+  (ne do neexistujícího `MANZELSTVI`) a neodkazují na části, které projekt nemá.
+- Zadání nezávislého pohledu (`tools/audit.py`) kontrolovalo vedlejší nálezy v neexistujícím `MANZELSTVI`
+  a čtenář `rodokmen-ctenar` hledal hotové snímky v neexistujícím `pracovni/cache_*`. Teď `RODINA` / `SIDE`
+  a mezipaměť `tools/cache.py`.
+
+## 0.10.1 – 8. 11. 2026
+
+**Opravy**
+- Doplňující skilly (vedení čtenářů, vedlejší nálezy) radily zapisovat sourozence a další manželství do `SIDE`
+  a neexistujícího `MANZELSTVI`. Patří do `RODINA` (druhý partner jako `partner=[…]`), jinak je web neukáže.
+- Pokyny už neodkazují na věci, které projekt nemá: teploměr generací, stránku souvislostí rodů, `data/domy.json`,
+  `pracovni/cache_*` (mezipaměť je `tools/cache.py`) a přímý `curl` místo brzdy `tools/slusne.py`.
+- Nový test hlídá, že pokyny jmenují jen sbírky dat, které projekt má.
+
+## 0.11.0 – 8. 11. 2026
+
+**Nové**
+- Výzkum po kolech: plán → čtenáři → ověření → nezávislý pohled → rozhodnutí, jak dál (skill `rodokmen-orchestrace`).
+  Bez uživatele nejvýš 3 kola za sebou, pak Claude shrne výsledky a zeptá se, jestli pokračovat.
+- Čtenář matrik `rodokmen-ctenar` běží vždy na levnějším modelu (Claude Sonnet). Hledá a čte, výsledky ukládá
+  jen do `pracovni/`. Co najde, ověří hlavní model na snímku a teprve pak to zapíše. Nový projekt ho má
+  v `.claude/agents/`, starší ho dostane aktualizací projektu.
+- Nezávislý pohled z Codexu (`tools/audit.py`): po každém kole Codex zkontroluje zápisy proti výřezům a podívá se
+  na výsledky z jiné strany – jiné výklady, co se přehlíží a kde ještě hledat (smí vyhledávat na webu).
+  Na archivy nechodí a nic nemění. Rozhodne, jak dál (pokračovat, opravit, přečíst znovu, změnit postup, zeptat se),
+  a vypíše spotřebu tokenů. Nahrazuje ruční kopírování zpráv do ChatGPT; čerpá z limitů ChatGPT, ne z kreditů Claude.
+  Bez Codexu připraví zadání pro pomocníka s čistým kontextem.
+
 ## 0.10.0 – 10. 11. 2026
 
 Hlavní novinka: **přepracované návody.** SKILL.md, který Claude čte v každém sezení, je o třetinu kratší – podrobnosti
@@ -61,6 +111,18 @@ Děkuji všem za podrobné poznámky z praxe a za hotové návrhy oprav.
   s chybou 403 je blokace, ne pomalé načítání – Claude přestane a řekne to (#147).
 
 Děkuji všem za rychlá hlášení e-mailem i na GitHubu.
+
+## 0.10.0 (fork) – 7. 11. 2026
+
+**Nové**
+- Sčítací hárky 1930 ze Slovakiany (Slovensko): `slovakiana.py hledat "Obec"` vypíše všechny hárky obce podle čísla domu
+  a uloží index s odkazy do prohlížeče. `slovakiana.py stahni` stáhne obě strany vybraných hárků (nejvýš 10 najednou).
+- Nástroje pro SOA Litoměřice, židovské matriky Národního archivu a další genealogické a válečné databáze.
+  MZA Brno: `mza.py hledat` a `puvodce` najdou knihy, snímky se dál čtou v prohlížeči.
+- Navigace v Matricule a kontrola dostupnosti archivních nástrojů pomocí `smoke_test.py`.
+- Výřezy Zoomify stahují jen potřebné dlaždice; Python nástroje používají společnou brzdu proti přetížení archivů.
+- Brzda dodržuje pauzu, o kterou archiv žádá v hlavičce Retry-After, a když archiv hlásí, že dotazy docházejí
+  (RateLimit-Remaining), počká na obnovení limitu.
 
 ## 0.9.1 – 6. 11. 2026
 

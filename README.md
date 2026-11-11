@@ -1,4 +1,4 @@
-# Rodokmen – skill pro Claude Code
+# Rodokmen – skill pro Claude Code, Codex a OMP
 
 ![Rodokmen z matrik a rodinný web – vějíř předků, mapa a zajímavosti](docs/banner.jpg)
 
@@ -11,7 +11,7 @@ Vznikl při skutečném hledání předků jedné rodiny.
 
 **Autor a správce:** Jindřich Šaršon ([sarsonj@gmail.com](mailto:sarsonj@gmail.com), [GitHub](https://github.com/sarsonj))
 
-**Aktuální verze: 0.10.0 (vydána 10. 11. 2026).** Skill se průběžně vyvíjí – opravuji chyby a doplňuji postupy pro další archivy
+**Aktuální verze: 0.11.2 (vydána 11. 11. 2026).** Skill se průběžně vyvíjí – opravuji chyby a doplňuji postupy pro další archivy
 podle toho, na co narazíte vy. Jak aktualizovat, najdete v části [Instalace](#instalace), přehled změn
 po verzích v [CHANGELOG.md](CHANGELOG.md).
 
@@ -47,13 +47,13 @@ mapu, kde předci žili, osm rodů a vějíř předků. Další stránky: rodokm
 s přepisem a překladem, „Co hledáme“ a deník hledání. **[Podívejte se na celou úvodní stránku ukázky →](docs/ukazka-web.png)**
 
 ## Co budete potřebovat
-- **Claude Code** (aplikace pro Mac/Windows nebo příkazová řádka) a placené předplatné Claude. Rodokmen je
-  dlouhá práce – počítejte s několika večery a s tím, že spotřebuje dost kreditů. Nejlevnější tarif **Pro bude
-  nejspíš málo** (stačí na vyzkoušení), na celý rodokmen počítejte aspoň s nejnižším tarifem **Max**.
-  Po dokončení můžete předplatné zase snížit nebo zrušit, web i data vám zůstanou.
+- **Claude Code** (aplikace pro Mac/Windows nebo příkazová řádka) a placené předplatné Claude, nebo
+  **Codex** (OpenAI), nebo **[OMP (Oh My Pi)](https://github.com/can1357/oh-my-pi)** se stejně silným modelem. Rodokmen je
+  dlouhá práce – počítejte s několika večery a spotřebou kreditů podle zvoleného nástroje a modelu.
+  Web i data zůstanou ve vašem projektu.
 - **Počítač s macOS nebo Windows** (obojí vyzkoušeno; Windows 11 s Pythonem z python.org a Git Bashem).
   Linux by měl fungovat, ale vyzkoušený není.
-- Programy **Python 3, Node.js, ImageMagick a git**. Nemusíte je instalovat předem – Claude zkontroluje, co chybí,
+- Programy **Python 3, Node.js 22.19.0 nebo novější, ImageMagick a git**. Nemusíte je instalovat předem – Claude zkontroluje, co chybí,
   a pomůže s instalací (na Macu přes [Homebrew](https://brew.sh), na Windows přes winget).
 - Pro střední a jižní Čechy a Moravu (SOA Praha, SOA Třeboň, MZA Brno, ZA Opava) **prohlížeč pro Clauda** –
   doplněk Playwright.
@@ -66,19 +66,22 @@ s přepisem a překladem, „Co hledáme“ a deník hledání. **[Podívejte se
 AI se vyvíjí rychle a za pár měsíců může skill dávat lepší, nebo jen jiné výsledky. Proto je tu uvedeno, s čím byl
 vyzkoušený.
 
-- **Stav k 10. 11. 2026 (verze 0.10.0):** Claude Code s hlavním modelem **Claude Opus 5.5**. Pomocníci, kteří hledají
+- **Stav k 11. 11. 2026 (verze 0.11.2):** Claude Code s hlavním modelem **Claude Opus 5.5**. Pomocníci, kteří hledají
   a čtou matriky jako první, běží na **Claude Sonnet 5.5**. Každý jejich nález pak hlavní model ověřuje na snímku.
+  Po každém kole se na výsledky nezávisle podívá **Codex (GPT-6.1 Sol)** – je-li nainstalovaný a přihlášený.
 - Vyzkoušeno na několika skutečných rodokmenech (největší má 243 předků v 11 generacích a 192 matričních zápisů).
   Výsledek se porovnával s větví, kterou jsme léta dělali ručně.
 
-S jiným nebo slabším modelem počítejte s víc chybami ve čtení starého písma.
+S jiným nebo slabším modelem počítejte s víc chybami ve čtení starého písma. V Codexu (GPT-6.1 Sol) se skill zkoušel
+na jednom skutečném rozpracovaném rodokmenu: navázal na práci, našel a zapsal nové zápisy. Celý rodokmen s ním zatím
+nevznikl a jeho čtení nikdo nesrovnal s ručním přepisem.
 
 ## Instalace
 
-### Varianta A – jako plugin (doporučeno)
+### Varianta A – jako plugin v Claude Code (doporučeno)
 V Claude Code napište:
 ```
-/plugin marketplace add sarsonj/rodokmen-skill
+/plugin marketplace add jozefizso/rodokmen-skill
 /plugin install rodokmen@rodokmen-skill
 ```
 Pak Claude Code restartujte (do běžící relace se nový plugin nenačte).
@@ -95,23 +98,54 @@ Pak Claude Code restartujte (do běžící relace se nový plugin nenačte).
 Po aktualizaci Claude Code restartujte. Rozpracovaný projekt pak Claude při další práci sám nabídne aktualizovat
 na novou verzi (vaše data i vlastní úpravy webu a nástrojů zůstanou, změny šablony se do nich sloučí).
 
-### Varianta B – ručně
+### Varianta B – jako plugin v Codexu
+V terminálu:
+```
+codex plugin marketplace add jozefizso/rodokmen-skill
+codex plugin add rodokmen@rodokmen-skill
+```
+Aktualizace později: `codex plugin marketplace upgrade rodokmen-skill` (kdyby `codex plugin list` ukazoval starou verzi,
+pak ještě `codex plugin add rodokmen@rodokmen-skill`). Rozpracovaný projekt pak agent sám nabídne aktualizovat,
+stejně jako v Claude Code.
+
+Přístup k síti a schvalování závisí na nastavení Codexu a prostředí. Pokud nástroje nedosáhnou na archiv,
+zkontrolujte oprávnění a [nastavení sandboxu](https://developers.openai.com/codex/config-reference).
+Změnu přístupu k síti provádějte jen tehdy, když ji pro svůj projekt chcete povolit.
+
+### Varianta C – jako plugin v OMP
+V terminálu:
+```
+omp plugin marketplace add jozefizso/rodokmen-skill
+omp plugin install rodokmen@rodokmen-skill
+```
+(nebo uvnitř OMP `/marketplace add jozefizso/rodokmen-skill`, `/marketplace install rodokmen@rodokmen-skill`
+a pak `/reload-plugins`).
+Aktualizace později: `omp plugin marketplace update rodokmen-skill && omp plugin upgrade rodokmen@rodokmen-skill`.
+Rozpracovaný projekt pak agent sám nabídne aktualizovat, stejně jako v Claude Code.
+
+### Varianta D – ručně
 Stáhněte repozitář (zelené tlačítko **Code → Download ZIP** na GitHubu, nebo `git clone`) a zkopírujte složku
 `skills/rodokmen` do `~/.claude/skills/` (na Windows `C:\Users\<jméno>\.claude\skills\`). Výsledek:
-`~/.claude/skills/rodokmen/SKILL.md`.
+`~/.claude/skills/rodokmen/SKILL.md`. Pro Codex ji zkopírujte do `~/.agents/skills/`
+(výsledek `~/.agents/skills/rodokmen/SKILL.md`), pro OMP do `~/.omp/agent/skills/`
+(výsledek `~/.omp/agent/skills/rodokmen/SKILL.md`).
 
-Pak Claude Code restartujte.
+Pak Claude Code (nebo Codex, OMP) restartujte.
+
+V **Cursoru** složku `skills/rodokmen` zkopírujte do `~/.cursor/skills/rodokmen/` (na Windows `C:\Users\<jméno>\.cursor\skills\rodokmen\`).
+Přes Customize → From GitHub Repository to nejde: ten postup chce `.cursor-plugin/marketplace.json` a tento repozitář má manifest pro Claude Code.
+Podrobnosti jsou v `skills/rodokmen/reference/cursor.md`.
 
 ## První spuštění
-1. Spusťte Claude Code (klidně v domovské složce) a napište třeba:
+1. Spusťte Claude Code, Codex, Cursor nebo OMP a napište třeba:
    > Chci udělat rodokmen své rodiny.
 
-   nebo přímo `/rodokmen`.
-2. Claude zkontroluje programy, založí složku projektu (např. `~/Rodokmen`) a začne se ptát na rodinu.
+   nebo přímo `/rodokmen` (v Codexu napište `$` a vyberte rodokmen ze seznamu, v OMP `/skill:rodokmen`).
+2. Agent zkontroluje programy, založí složku projektu (např. `~/Rodokmen`) a začne se ptát na rodinu.
    Připravte si, co víte o rodičích, prarodičích a pradědečcích, a rodinné dokumenty (rodné a oddací listy, parte,
    fotky, kroniky) – stačí vyfotit mobilem.
 3. **Příště otevírejte Claude Code přímo ve složce projektu** (`cd ~/Rodokmen && claude`, nebo v aplikaci
-   vyberte tuto složku). Claude si přečte, kde jste skončili, a naváže.
+   vyberte tuto složku; v Codexu `cd ~/Rodokmen && codex`, v OMP `cd ~/Rodokmen && omp`). Agent si přečte, kde jste skončili, a naváže.
 
 Chcete nejdřív vidět, jak web vypadá? Řekněte: *„Ukaž mi ukázkový web.“* Claude založí ukázkový projekt
 s vymyšlenou rodinou a spustí náhled.
@@ -137,17 +171,25 @@ skills/rodokmen/
                      (spojování záznamů, mrtvé body, prameny mimo ČR), formát dat, web, soukromí
   tools/             nástroje v Pythonu (ARON, výřezy, rámečky, mapa, kontrola dat, export do webu, vějíř)
   template/          šablona projektu: prázdná data, ukázková rodina, web (Astro)
-.claude-plugin/      instalace jako plugin
+.claude-plugin/      instalace jako plugin (Claude Code, Codex i OMP)
 ```
 
 ## Co umí a co ne
 - **Hotové nástroje** (bez prohlížeče) mají: východní Čechy (SOA Zámrsk, ARON), západní Čechy (SOA Plzeň,
-  Porta fontium) a Prahu (AHMP a policejní přihlášky 1850–1914). Pro severní Čechy (SOA Litoměřice) stahuje
-  snímky nástrojem, knihu ale najde přes prohlížeč. Pro Rakousko je postup přes Matriculu.
+  Porta fontium), severní Čechy (SOA Litoměřice), Prahu (AHMP a policejní přihlášky 1850–1914), židovské matriky
+  z Národního archivu (Archivní VadeMeCum) a Encyklopedii dějin města Brna.
+  Pro Rakousko (Vídeň) a Polsko je to Matricula (nástroj najde farnost a knihu, snímky se čtou v prohlížeči).
+  Slovensko, Maďarsko a Rumunsko skill zatím jen popisuje (FamilySearch, státní archivy).
+- **Vězni a oběti 2. světové války:** čeští vězni v koncentračních táborech (Památník Terezín), Arolsen Archives
+  (Dachau, Mauthausen, Buchenwald, část Osvětimi, nuceně nasazení, vysídlené osoby), zemřelí v Mauthausenu a oběti
+  holocaustu z českých zemí (holocaust.cz).
+- Skript `smoke_test.py` jedním bezpečným dotazem zkontroluje, že všechny síťové nástroje a portály pořád fungují (portály se mění).
 - **Jen přes prohlížeč:** střední Čechy (SOA Praha, eBadatelna – i urbáře a gruntovní knihy), jižní Čechy
-  (SOA Třeboň) a Morava (MZA Brno) – tyto archivy od listopadu 2026 stahovací nástroje odmítají, Claude proto
-  zápis přiblíží v jejich prohlížeči a uloží snímek obrazovky. Opava taky přes prohlížeč. Funguje to, ale je to
-  pomalejší.
+  (SOA Třeboň) a Morava (MZA Brno; knihy najde nástroj `mza.py`) – tyto archivy od listopadu 2026 stahovací nástroje
+  odmítají, Claude proto zápis přiblíží v jejich prohlížeči a uloží snímek obrazovky. ZA Opava (severní Morava
+  a Slezsko) taky přes prohlížeč: portál má ochranu proti robotům a CAPTCHU řeší uživatel, snímky pak stáhne nástroj.
+  Funguje to, ale je to pomalejší.
+- Poválečné přistěhovalce (osídlování pohraničí, reemigranti) skill zatím jen radí, kde hledat – hotový nástroj není.
 - U úředníků, vojáků a lékařů hledá i v **dobových novinách** (ANNO, Kramerius) – kariéra, vyznamenání, parte.
 - Umí načíst **rodinný strom z MyHeritage** a dalších služeb (export GEDCOM, z MyHeritage i zálohu stromu z programu
   Family Tree Builder) a udělat z něj plán hledání.
@@ -201,10 +243,11 @@ tady v repozitáři.
   npm při instalaci webu a přihlášení nástroje pro nasazení (Cloudflare, Netlify, CapRover), pokud web zveřejňujete. Mimo
   projekt nic nemažou ani nepřepisují – kromě nejdéle nepoužitých snímků ve vlastní mezipaměti nad limitem.
 - **Na které servery chodí:** archivní portály (ARON SOA Zámrsk, SOA Třeboň, SOA Plzeň – Porta fontium, SOA Praha –
-  eBadatelna, AHMP, Národní archiv, SOA Litoměřice, Matricula), noviny (ANNO, Kramerius), OpenStreetMap (mapa
+  eBadatelna, MZA Brno – Acta Publica, AHMP, Encyklopedie dějin města Brna, Národní archiv včetně VadeMeCum, Památník Terezín, Arolsen Archives, Mauthausen Memorial, holocaust.cz, SOA Litoměřice, Matricula), noviny (ANNO, Kramerius), OpenStreetMap (mapa
   a souřadnice obcí) a při instalaci webu registr npm.
   Na Cloudflare (nebo Netlify) jen tehdy, když web sami zveřejníte. Nikam jinam nic neposílají, ani vaše data, ani poznámky.
 - **Doporučení:** nechte v Claude Code zapnuté schvalování příkazů, aspoň dokud si nezvyknete, co Claude dělá.
+  V OMP ho zapnete spuštěním `omp --approval-mode always-ask` (nebo trvale `tools.approvalMode` v nastavení).
   Obecně instalujte skilly a pluginy jen od lidí, kterým věříte. Skill nikdo předem nekontroluje a Claude se
   jeho návodem řídí.
 

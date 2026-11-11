@@ -3,10 +3,11 @@
 Čti při zakládání projektu nebo když nějaký nástroj chybí či padá na instalaci.
 
 ## Nástroje
-Zkontroluj: `python3 --version` (≥ 3.9), `node --version` (≥ 20), `magick -version` (ImageMagick 7; je-li jen verze 6
+Zkontroluj: `python3 --version` (≥ 3.9), `node --version` (≥ 22.19.0 pro Astro 7.3.8 a lockfile; nižší verze nemusí stačit), `magick -version` (ImageMagick 7; je-li jen verze 6
 s příkazem `convert`, nástroje ji mimo Windows použijí samy), `git --version`.
-Co chybí, pomoz nainstalovat. Instalace systémových věcí nech uživatele potvrdit; interaktivní příkazy mu dej
-s předponou `!`, ať je spustí sám.
+Co chybí, pomoz nainstalovat. Instalace systémových věcí nech uživatele potvrdit; interaktivní příkazy ať spustí
+sám: v Claude Code mu je dej s předponou `!`, jinde (Cursor) mu je napiš do chatu jako blok ke zkopírování
+a počkej, až je spustí.
 - **macOS:** Homebrew `brew install python node imagemagick git`.
 - **Windows:** winget nebo instalátory z python.org, nodejs.org, imagemagick.org. **winget vždy s plnými přepínači**,
   jinak spadne na otázce ke zdroji msstore („Error reading input in prompt“):
@@ -26,13 +27,13 @@ Python z python.org po instalaci nemá certifikáty (`CERTIFICATE_VERIFY_FAILED`
 - Zkontroluj, **který** Python to je (`which -a python`) – může být přibalený k jinému programu (Inkscape, GIMP…) a nemít
   certifikáty. Ověř https: `python -I -c "import urllib.request; urllib.request.urlopen('https://aron.vychodoceskearchivy.cz')"`.
   Při `CERTIFICATE_VERIFY_FAILED` nainstaluj běžný Python (winget výše) a volej ho plnou cestou
-  `"$LOCALAPPDATA/Programs/Python/Python312/python.exe"` (do PATH se dostane až po restartu Claude Code).
+  `"$LOCALAPPDATA/Programs/Python/Python312/python.exe"` (do PATH se dostane až po restartu agenta).
 - **ImageMagick:** `winget install --id ImageMagick.ImageMagick --source winget --accept-source-agreements --accept-package-agreements`;
-  do PATH se dostane až po restartu Claude Code (do té doby před příkazy `export PATH="/c/Program Files/ImageMagick-7…:$PATH"`
+  do PATH se dostane až po restartu agenta (do té doby před příkazy `export PATH="/c/Program Files/ImageMagick-7…:$PATH"`
   s přesnou složkou z `C:\Program Files`). **Nikdy `convert`** (systémový nástroj Windows), vždy `magick`.
 - Skripty `.sh` spouštěj přes Git Bash (`bash tools/…`). Delší jednorázové skripty v Pythonu nepiš jako heredoc
   (`python - <<EOF`), v Git Bash občas spadnou na „unexpected EOF“ – zapiš je do souboru v `pracovni/` a spusť.
-- Tato pravidla zapiš hned po založení projektu do jeho `CLAUDE.md`, ať platí i příště, a dej je do zadání pomocníkům
+- Tato pravidla zapiš hned po založení projektu do jeho `CLAUDE.md` a `AGENTS.md` (mají stejný text; Claude Code čte první, Cursor druhý), ať platí i příště, a dej je do zadání pomocníkům
   (další pasti při práci: `matriky.md` → Technické pasti (Windows)).
 
 ## Prohlížeč pro Clauda
@@ -46,12 +47,14 @@ Bez prohlížeče ať uživatel posílá snímky obrazovky.
 ## Založení projektu
 1. Zeptej se, kde má projekt být (navrhni `~/Rodokmen`), a založ ho: `python3 -I SKILL_DIR/tools/novy_projekt.py <složka>`.
    Chce-li uživatel nejdřív vidět, jak web vypadá, založ vedle ukázku: `… novy_projekt.py ~/Rodokmen-ukazka --ukazka`,
-   pak `cd web && npm install && npm run nahled` a pošli mu odkaz http://localhost:4321.
+   pak `cd web && npm ci && npm run nahled` a pošli mu odkaz http://localhost:4321. Použij Node.js ≥22.19.0 pro instalaci i build.
 2. Zeptej se, jestli zapnout **hlídač sítě** (`… novy_projekt.py <složka> --hlidac`, vypnutí `--bez-hlidace`).
    Vysvětli jednou větou: archivy blokují IP adresu po sérii rychlých dotazů. Hlídač je malý skript v projektu
    (`tools/hlidac_site.py`), který před každým příkazem zkontroluje, že stahování jde přes brzdu, a jinak ho zamítne.
    Sám nic nestahuje. Bez něj platí jen pravidla brzdy a zákaz přímého `curl`/`wget` v `.claude/settings.json`.
-3. V projektu `git init` a první uložení (git = historie změn, kdyby se něco pokazilo). Doporuč pokračovat v Claude Code
-   **z této složky** (soubor `CLAUDE.md` v ní zajistí, že příště navážeš).
+3. V projektu `git init` a první uložení (git = historie změn, kdyby se něco pokazilo). Doporuč pokračovat
+   **z této složky**: v Claude Code pomáhá navázat `CLAUDE.md`, v Codexu, Cursoru a OMP `AGENTS.md`.
+   Síťová a schvalovací pravidla se liší podle prostředí. Pokud síť není dostupná, vysvětli to uživateli a postupuj
+   podle aktuální konfigurace a pokynů prostředí; nastavení neměň bez jeho souhlasu.
 4. Vyplň v `data/STAV.md` sekci „Pro koho“ a v `data/web.json` název webu („Rodokmen Novákových“), jakmile znáš
    příjmení výchozí osoby (šablona je prázdná).

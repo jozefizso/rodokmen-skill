@@ -42,7 +42,7 @@ Má vlastní položku v menu a je hlavní věcí na úvodní stránce.
 jde později doplnit. `kontrola.py` na to upozorní. Uživateli to nabídni, i když dřív řekl „až bude víc dat“.
 
 **Postup:**
-1. Sesbírej materiál: fakta a poznámky osob hlavního rodu, `SIDE`, zajímavosti, `udaje_od_rodiny.md`,
+1. Sesbírej materiál: fakta a poznámky osob hlavního rodu, `RODINA`, `SIDE`, zajímavosti, `udaje_od_rodiny.md`,
    rodinné paměti a dokumenty, novinové výstřižky.
 2. Napiš **koncept do chatu** a nech si ho schválit (délka, tón, co ano/ne). Pod koncept připiš, co je z matrik
    a co od rodiny, a co jsi vynechal jako citlivé. Teprve po schválení ho ulož.
@@ -60,6 +60,34 @@ jde později doplnit. `kontrola.py` na to upozorní. Uživateli to nabídni, i k
    ```
 4. Nastav `web.json` → `"pribeh": {"menu": "Příběh Novákových", "rod": 8, "tlacitko": "Přečíst příběh Novákových"}`
    a úvod (`uvod.nadpis`, 2–3 odstavce lákadla, fotka). Bez úvodu se na úvodní stránce ukáže aspoň název a `lead` příběhu.
+
+## Více příběhů
+Když chce rodina samostatné příběhy pro několik větví nebo témat, ulož každý do `data/pribehy/<slug>.md`:
+
+```markdown
+---
+title: "Příběh prvního rodu"
+lead: Stručná věta, která uvede příběh.
+rod: 8
+---
+
+## První kapitola
+Text příběhu…
+```
+
+`slug` je název souboru z malých písmen bez diakritiky, číslic a pomlček (např. `prvni-rod`). Pole `rod` je číslo
+rodu 8–15; slouží k odkazu na příslušnou větev. Web vytvoří přehled na `/pribehy/`, samostatnou stránku
+`/pribehy/<slug>/`, odkaz v menu i tlačítko z úvodu. V `web.json` lze seznam a pořadí nastavit například
+`"pribehy": ["prvni-rod", "druhy-rod"]`; pokud je seznam prázdný, použijí se všechny soubory v abecedním pořadí.
+Je-li seznam vyplněný, musí obsahovat každý soubor právě jednou. Popisek položky menu a tlačítka lze dál nastavit
+v `pribeh.menu` a `pribeh.tlacitko`.
+
+Přítomnost Markdown souborů ve složce `data/pribehy/` má přednost před starým `data/pribeh.md`. Bez této složky
+funguje původní jediný příběh beze změny. Po úpravě spusť `npm run data` a oprav případná upozornění
+`POZOR: nefunkční odkaz`; odkazy na další příběhy piš jako `/pribehy/<slug>/`.
+
+Před zveřejněním zkontroluj soukromí **každého** souboru `data/pribehy/*.md`, nejen příběhu zobrazeného jako první.
+`tools/kontrola.py` hledá citlivý obsah ve všech těchto souborech; uživatel musí schválit každý zveřejňovaný údaj.
 
 **Jak má vypadat** (osvědčený tvar, asi 800–1500 slov):
 - Kapitoly po generacích, od nejstaršího předka k dnešku. Nadpis = člověk nebo jeho role + roky

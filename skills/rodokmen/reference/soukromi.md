@@ -8,8 +8,10 @@
 
 ## Před zveřejněním webu projdi s uživatelem
 `python3 -I tools/kontrola.py` hlásí `CITLIVÉ` u textů z posledních ~100 let (sebevražda, nemoc, rozvod, dluhy, nemanželské
-dítě…), které jdou na web – v poznámkách osob, ve „Co hledáme“ (`ISSUES`), u bočních příbuzných, v zajímavostech a v příběhu.
+dítě…), které jdou na web – v poznámkách osob, ve „Co hledáme“ (`ISSUES`), u bočních příbuzných, v zajímavostech,
+v `data/pribeh.md` i ve všech `data/pribehy/*.md`.
 Co uživatel na webu schválí, zapiš úryvkem do `web.json` → `citlive_schvaleno` (`web.md`).
+Databáze obětí holocaustu (`obeti.py`) a vojenské ztráty jsou citlivé: jména obětí na web jen se souhlasem rodiny.
 Údaje z rodinného stromu (GEDCOM) a od rodiny bývají právě takové – pro výzkum ano, na web jen se souhlasem.
 1. Seznam žijících osob na webu a co o nich web říká.
 2. Rodinné fotky a dokumenty – souhlasí ti, kdo jsou na nich (nebo jejich rodina)?
