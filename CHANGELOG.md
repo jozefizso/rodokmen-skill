@@ -6,6 +6,12 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
+## 0.11.3 – 11. 11. 2026
+
+**Nové**
+- Vějíř: štípnutí dvěma prsty na touchpadu přibližuje citlivěji než kolečko a kolečko posouvající po stránkách
+  (některé myši a prohlížeče) přibližuje stejně jako po řádcích.
+
 ## 0.11.2 – 11. 11. 2026
 
 Verze 0.10.0 až 0.11.1 tohoto forku přeskládané na nejnovější upstream (0.10.0 od sarsonj): zachovává všechny změny
