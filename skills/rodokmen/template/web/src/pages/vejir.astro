@@ -30,7 +30,7 @@ const names = [...new Set(Object.values(people).filter((p) => p.k > 1).map((p) =
 
     stage.addEventListener('wheel', (e) => {
       e.preventDefault();
-      fan.zoomAt(wheelFactor(e.deltaY, e.deltaMode), e.clientX, e.clientY);
+      fan.zoomAt(wheelFactor(e.deltaY, e.deltaMode, e.ctrlKey), e.clientX, e.clientY);
     }, { passive: false });
 
     // tažení = posun (myš i jeden prst), dva prsty = přiblížení

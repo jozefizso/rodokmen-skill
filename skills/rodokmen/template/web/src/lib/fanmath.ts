@@ -57,10 +57,11 @@ export function bitmapTransform(v: Box, home: Box, area: Size, bw: number): stri
 }
 
 /** Krok kolečka → faktor přiblížení: úměrný deltě (touchpad posílá mnoho malých kroků, myš velké),
- *  jeden krok nejvýš ~2,2×. deltaMode 1 = řádky (Firefox), přepočet na px. */
-export function wheelFactor(deltaY: number, deltaMode: number): number {
-  const d = deltaMode === 1 ? deltaY * 33 : deltaY;
-  return Math.exp(-Math.max(-300, Math.min(300, d)) * 0.0026);
+ *  jeden krok nejvýš ~2,2×. deltaMode 1 = řádky (Firefox), 2 = stránky, přepočet na px.
+ *  Štípnutí na touchpadu prohlížeč hlásí jako kolečko s ctrlKey a malými deltami – je citlivější. */
+export function wheelFactor(deltaY: number, deltaMode: number, ctrlKey = false): number {
+  const d = deltaMode === 1 ? deltaY * 33 : deltaMode === 2 ? deltaY * 300 : deltaY;
+  return Math.exp(-Math.max(-300, Math.min(300, d)) * 0.0026 * (ctrlKey ? 5 : 1));
 }
 
 /** Zdrojový obdélník (v souřadnicích SVG) pro vykreslení celé plochy při výřezu v – i s okraji, které výřez
