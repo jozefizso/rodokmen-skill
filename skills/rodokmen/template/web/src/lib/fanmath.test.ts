@@ -74,6 +74,9 @@ test('kolečko: směr, symetrie a omezení kroku', () => {
   close(wheelFactor(-100, 0) * wheelFactor(100, 0), 1);
   close(wheelFactor(-3, 1), wheelFactor(-99, 0));
   close(wheelFactor(-10000, 0), wheelFactor(-300, 0));
+  close(wheelFactor(-1, 2), wheelFactor(-300, 0));            // stránky
+  assert.ok(wheelFactor(-4, 0, true) > wheelFactor(-4, 0));   // štípnutí je citlivější
+  close(wheelFactor(-4, 0, true) * wheelFactor(4, 0, true), 1);
 });
 
 test('dlaždice klidového stavu pokrývá celou plochu včetně okrajů', () => {
