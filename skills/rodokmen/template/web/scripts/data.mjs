@@ -4,10 +4,10 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-// Astro 7 potřebuje Node ≥ 22.12 – říct to hned a srozumitelně, ne až chybou při `astro build`.
+// Astro 7 potřebuje Node ≥ 22.12, zamčené závislosti (lockfile) ≥ 22.19.0 – říct to hned a srozumitelně, ne až chybou při `astro build`.
 const [maj, min] = process.versions.node.split(".").map(Number);
-if (maj < 22 || (maj === 22 && min < 12)) {
-  console.error(`CHYBA: web potřebuje Node 22.12 nebo novější, tady je ${process.versions.node}. Nainstaluj aktuální ` +
+if (maj < 22 || (maj === 22 && min < 19)) {
+  console.error(`CHYBA: web potřebuje Node 22.19.0 nebo novější, tady je ${process.versions.node}. Nainstaluj aktuální ` +
     "Node LTS (macOS: brew install node, Windows: winget install OpenJS.NodeJS.LTS, pak restart Claude Code) a spusť znovu.");
   process.exit(1);
 }

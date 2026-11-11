@@ -48,7 +48,8 @@ def falesny_skill(koren):
         zapis(os.path.join(s, "template", "web", "src", n), text(RADKY))
     zapis(os.path.join(s, "template", "web", "node_modules", "x.js"), "nekopirovat\n")
     zapis(os.path.join(s, "template", "data", "STAV.md"), "# Stav\n")
-    for n in ("CLAUDE.md", ".gitignore", ".gitattributes", "poznamky_pro_skill.md", os.path.join(".claude", "launch.json")):
+    for n in ("CLAUDE.md", ".gitignore", ".gitattributes", "poznamky_pro_skill.md", os.path.join(".claude", "launch.json"),
+              os.path.join(".claude", "agents", "rodokmen-ctenar.md")):
         zapis(os.path.join(s, "template", n), "{}\n" if n.endswith(".json") else "x\n")
     return s
 
