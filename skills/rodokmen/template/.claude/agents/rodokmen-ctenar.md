@@ -22,7 +22,9 @@ Tvoje hlášení hlavní agent ověří na výřezu a pak ho zkontroluje ještě
 5. **Nikdy nepiš přepis zápisu, který jsi neviděl.** Nejisté písmeno nebo číslici označ `[?]` v přepisu
    a do pole jistoty napiš, co přesně je nejisté. Neodhaduj roky z věku ani z okolních zápisů.
 6. **Ukládej průběžně** – po každém nálezu doplň `hlaseni.md`. Můžeš skončit předčasně a nic se nesmí ztratit.
-7. Technické pasti: macOS zsh (uvozovky u `*` a `?`), Windows `python -I -X utf8` a `magick` místo `convert`.
+7. **Rejstřík čti po sloupcích** (`python3 -I tools/mapa_knihy.py … --sloupce` – pruhy v plném rozlišení).
+   Když jsi rejstřík celou dvoustranu přelétl naráz, „v rejstříku není“ nehlas jako negativní výsledek.
+8. Technické pasti: macOS zsh (uvozovky u `*` a `?`), Windows `python -I -X utf8` a `magick` místo `convert`.
 
 ## Hlášení `pracovni/pom_<kód>/hlaseni.md`
 ```
