@@ -17,8 +17,8 @@ Do .claude/settings.json doplní zákaz přímého curl/wget
 (stahování z archivů jde přes brzdu tools/slusne.py); ostatní nastavení v souboru nechá beze změny.
 
 Existující data nepřepisuje.
-Do .skill_sablona/ uloží kopii šablony web/ a tools/, ze které projekt vznikl (patří do gitu s projektem).
-Aktualizace staršího projektu (znovu spustit na stejnou složku) rozhodne o každém souboru web/ a tools/ podle
+Do .skill_sablona/ uloží kopii šablony web/, tools/ a .claude/agents/, ze které projekt vznikl (patří do gitu s projektem).
+Aktualizace staršího projektu (znovu spustit na stejnou složku) rozhodne o každém souboru web/, tools/ a .claude/agents/ podle
 tří verzí (uložená šablona, projekt, nová šablona): neupravený soubor přepíše, vlastní úpravu nechá, když se šablona
 nezměnila, a jinak sloučí po řádcích (git merge-file). Při konfliktu, bez gitu, u souboru přidaného projektem
 i šablonou a u souboru smazaného v projektu, který šablona změnila, soubor nechá a novou verzi uloží do
@@ -46,6 +46,7 @@ def copy(src, out):
 SKIP = ("node_modules", "dist", ".astro", "__pycache__")
 SABLONA = ".skill_sablona"   # kopie šablony, ze které projekt vznikl (základ pro tříčestnou aktualizaci)
 CEKAJICI = "cekajici.json"   # v .skill_sablona/: návrhy z konfliktů, které čekají na --vyreseno
+AGENTI = ".claude/agents"   # pomocníci projektu (čtenář rodokmen-ctenar); aktualizují se jako web/ a tools/
 VZDY_SABLONA = {"web/package-lock.json"}   # mění ho npm install, ne uživatel: neslučovat, vzít nový (starý do zálohy)
 NEROZLISUJE = os.name == "nt" or sys.platform == "darwin"   # disk běžně nerozlišuje velikost písmen
 
@@ -276,9 +277,10 @@ def vyresit(dst, cesta):
         return False
     rel = os.path.normpath(os.path.relpath(cesta, dst) if os.path.isabs(cesta) else cesta).replace(os.sep, "/")
     cast, _, zbytek = rel.partition("/")
-    src = {"web": os.path.join(SKILL, "template", "web"), "tools": os.path.join(SKILL, "tools")}.get(cast)
-    if not src or not zbytek:
-        print(f"POZOR: {cesta} – zadejte cestu ve web/ nebo tools/ projektu (např. web/src/pages/index.astro).")
+    src = {"web": os.path.join(SKILL, "template", "web"), "tools": os.path.join(SKILL, "tools"),
+           ".claude": os.path.join(SKILL, "template", ".claude")}.get(cast)
+    if not src or not zbytek or (cast == ".claude" and not zbytek.startswith("agents/")):
+        print(f"POZOR: {cesta} – zadejte cestu ve web/, tools/ nebo .claude/agents/ projektu (např. web/src/pages/index.astro).")
         return False
     new, puv = os.path.join(src, zbytek), os.path.join(dst, SABLONA, cast, zbytek)
     if mimo(dst, puv) or kolize(dst, puv):
@@ -286,6 +288,8 @@ def vyresit(dst, cesta):
         return False
     if cast == "web":
         v_sablone = os.path.isfile(new) and not set(zbytek.split("/")) & set(SKIP)
+    elif cast == ".claude":
+        v_sablone = os.path.isfile(new) and zbytek.count("/") == 1 and zbytek.endswith(".md")
     else:
         v_sablone = os.path.isfile(new) and "/" not in zbytek and zbytek.endswith((".py", ".sh")) and zbytek != "novy_projekt.py"
     cek = nacti_cekajici(dst)
@@ -422,6 +426,11 @@ def main():
     nastroje = sorted(f for f in os.listdir(os.path.join(SKILL, "tools"))
                       if f.endswith((".py", ".sh", ".js")) and f != "novy_projekt.py")
     aktualizuj(os.path.join(SKILL, "tools"), dst, "tools", nastroje, zaloha, vysl, stary, cek)
+    # Pomocníci (čtenář na Sonnetu) se aktualizují stejně jako web/ a tools/. Projekt z 0.11.0–0.11.3 má čtenáře bez
+    # uloženého základu: ten se přepíše a původní verze jde do zálohy, další aktualizace už slučují.
+    agenti = os.path.join(SKILL, "template", ".claude", "agents")
+    aktualizuj(agenti, dst, AGENTI, sorted(f for f in os.listdir(agenti) if f.endswith(".md")), zaloha, vysl,
+               not os.path.isdir(os.path.join(dst, SABLONA, AGENTI)), cek)
     uloz_cekajici(dst, cek)
     for f in nastroje:   # i ponechaný vlastní .sh s CRLF: Git Bash by skript nespustil
         p = os.path.join(tools, f)
@@ -432,8 +441,7 @@ def main():
     for d in ("vyrezy", "zdroje", "dokumenty", "pracovni"):
         os.makedirs(os.path.join(dst, d), exist_ok=True)
     os.makedirs(os.path.join(dst, ".claude", "agents"), exist_ok=True)
-    for name in ("CLAUDE.md", ".gitignore", ".gitattributes", "poznamky_pro_skill.md", os.path.join(".claude", "launch.json"),
-                 os.path.join(".claude", "agents", "rodokmen-ctenar.md")):   # čtenář na Sonnetu (rodokmen-orchestrace)
+    for name in ("CLAUDE.md", ".gitignore", ".gitattributes", "poznamky_pro_skill.md", os.path.join(".claude", "launch.json")):
         out = os.path.join(dst, name)
         if not os.path.lexists(out):
             copy(os.path.join(SKILL, "template", name), out)

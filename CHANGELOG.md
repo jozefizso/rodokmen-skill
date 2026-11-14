@@ -6,6 +6,28 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
+## 0.11.4 – 14. 11. 2026
+
+Změny forku přeskládané na nejnovější upstream (0.10.1 od sarsonj). Vše z forku zůstává a přibývá vše z upstreamu 0.10.1.
+
+**Nové**
+- Z upstreamu 0.10.1: ZA Opava jen v prohlížeči (celý snímek přes Playwright), omezení SOA Praha v eBadatelně,
+  `mapa_knihy.py --sloupce` pro čtení rejstříku po sloupcích, náhled webu, který se nepře s běžícím náhledem (#186),
+  opravy `zapis.py`, `kontrola.py`, `napady.py`, `ramecek.py` a `anno_snap.py` a lhůta 90 let pro církevní knihy
+  ve slovenském státním archivu (#190, #191).
+- Čtenář `rodokmen-ctenar` a zadání čtenáři ve skillu `rodokmen-orchestrace` mají nové pravidlo: rejstřík se čte
+  po sloupcích, jinak „v rejstříku není“ neplatí jako negativní výsledek.
+- `rodokmen-orchestrace` u limitů serverů upozorní, že ZA Opava a SOA Praha pouštějí čtenáře jen s povoleným
+  prohlížečem a že ZA Opava dovolí asi 50 snímků denně.
+
+**Opravy**
+- `soal_zoomify.py` už nebere obrázky ZA Opava (archiv je nástrojům zakázal), dál umí SOA Litoměřice
+  a židovské matriky z VadeMeCum včetně výřezu.
+- Aktualizace projektu (`novy_projekt.py` na stejnou složku) teď aktualizuje i čtenáře `.claude/agents/rodokmen-ctenar.md`
+  stejně jako `web/` a `tools/`. Dřív ho jen doplnila, když chyběl, takže projekty z 0.11.0–0.11.3 nové pokyny
+  nedostaly. Při první aktualizaci se čtenář přepíše a původní verze se uloží do `pracovni/zaloha_<datum>/puvodni/`.
+- Fork měl vlastní verzi 0.10.1, která se v historii změn jmenuje „0.10.1 (fork)“, aby se nepletla s upstreamem.
+
 ## 0.11.3 – 11. 11. 2026
 
 **Nové**

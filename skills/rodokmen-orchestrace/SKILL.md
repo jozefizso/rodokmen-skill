@@ -72,9 +72,12 @@ vypíše a uloží (`tokeny`). Kdyby byl drahý, stačí audit každé druhé ko
    nebo v mezipaměti (`python3 -I tools/cache.py najdi <adresa>`).“
 3. „Vypiš i vedlejší nálezy: sourozence, děti, povolání, úmrtí, další manželství, kmotry, svědky, příbuzná jména, kde a kdy.“
 4. „U negativního výsledku přesně uveď knihu, snímky, roky a čitelnost.“
+5. „Rejstřík čti po sloupcích (`python3 -I tools/mapa_knihy.py … --sloupce`, `reference/matriky.md` → Čtení písma).
+   Bez toho „v rejstříku není“ nehlas jako negativní výsledek.“
 
 ## Limity serverů
 - ARON vydrží asi 6–8 souběžných stahování celkem. Víc (20–40 procesů) ho zahltí a snímek pak trvá desítky minut. Stav ověř přes brzdu: `python3 -I tools/slusne.py stav` a `python3 -I tools/smoke_test.py aron`; běžící stahování podle procesů `aron_img`.
+- ZA Opava a SOA Praha (eBadatelna) pouštějí jen prohlížeč tempem člověka; ZA Opava asi 50 snímků denně. Čtenáři je dávej jen s výslovně povoleným prohlížečem a s limitem v zadání (`reference/portaly.md`).
 - Acta Publica (MZA Brno) nelze stahovat přes curl (HTTP 426). Čte se jen v prohlížeči; hromadné stahování dlaždic skriptem je považováno za obcházení ochrany – nedělat.
 
 ## Zápis nálezu (pořadí)
