@@ -6,6 +6,13 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
+## 0.11.5 – 15. 11. 2026
+
+**Návody**
+- Hledání hrobů na Slovensku přes Virtuálne cintoríny (virtualnycintorin.sk). Stránka uvádí jen datum úmrtí a věk,
+  ale u žen i rodné příjmení a ukáže, kdo leží ve stejném hrobě. Claude ji čte přímo bez přihlášení a datum úmrtí
+  vede jako vodítko, dokud ho nepotvrdí matrika.
+
 ## 0.11.4 – 14. 11. 2026
 
 Změny forku přeskládané na nejnovější upstream (0.10.1 od sarsonj). Vše z forku zůstává a přibývá vše z upstreamu 0.10.1.

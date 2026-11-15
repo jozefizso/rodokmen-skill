@@ -93,7 +93,8 @@ Základní smyčka pro každou osobu:
    `python3 -I tools/portafontium.py obec "Obec"`, SOA Litoměřice: `tools/litomerice.py`, židovské matriky (Národní
    archiv): `tools/vademecum.py`, Brno – osobnosti, ulice, hroby: `tools/brno_encyklopedie.py`, Rakousko/Vídeň:
    `tools/matricula.py` (seznamy) + `tools/matricula_snimek.js` (snímek přes Playwright), Slovensko – sčítací hárky
-   1930 (kdo bydlel v domě): `tools/slovakiana.py`, vězni a oběti 2. sv. války: `tools/vezni.py`, `tools/arolsen.py`,
+   1930 (kdo bydlel v domě): `tools/slovakiana.py`, Slovensko – hroby (datum úmrtí, rodné příjmení, kdo leží
+   ve stejném hrobě): virtualnycintorin.sk podle `reference/portaly.md`, vězni a oběti 2. sv. války: `tools/vezni.py`, `tools/arolsen.py`,
    `tools/mauthausen.py`, `tools/obeti.py`, Praha: `tools/ahmp_search.sh`; SOA Praha, MZA Brno (knihy najde
    `tools/mza.py hledat`) a SOA Třeboň jen v prohlížeči, ostatní v `reference/portaly.md`. Sňatek hledej nejdřív
    ve farnosti nevěsty. Je-li ke svazku rejstřík, začni jím.

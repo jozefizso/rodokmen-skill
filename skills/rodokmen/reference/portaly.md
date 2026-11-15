@@ -21,6 +21,7 @@ Matriky jsou online u osmi státních archivů (a židovské ještě v Národní
 | Mauthausen Memorial | zemřelí v Mauthausenu a pobočkách | raumdernamen.mauthausen-memorial.org | **ano – `mauthausen.py`** |
 | Terezínská iniciativa | oběti nacistické perzekuce (Židé z českých zemí) | holocaust.cz/databaze-obeti | **ano – `obeti.py`** |
 | Slovakiana (Slovenský národný archív) | sčítací hárky 1930 (a zčernené 1940) celého Slovenska – kdo bydlel v domě | slovakiana.sk/scitacie-harky | **ano – `slovakiana.py`** (index obce; snímky jen vybraných hárků) |
+| Virtuálne cintoríny | hroby na Slovensku (jen datum úmrtí, věk, rodné příjmení, kdo leží ve stejném hrobě) | virtualnycintorin.sk | **ano – stránky přímo (curl/WebFetch)**, bez nástroje (postup v Hroby a hřbitovy) |
 | VHÚ / VÚA-VHA | vojáci 1. světové války (seznamy ztrát, vojenské matriky), válečné hroby | digitalnistudovna.mo.gov.cz, valecnehroby.army.cz | nevyzkoušeno (ze zkušebního prostředí nedostupné) |
 
 Adresy u nevyzkoušených portálů ověř při prvním použití (portály se mění). Když nástroj selže, spusť `python3 -I tools/smoke_test.py`
@@ -570,7 +571,7 @@ domovskou obec, náboženství, národnost, povolání. Je to most mezi matrikam
      výsledky nefiltruje, jen řadí. Hledej přes rodiče a bez křestního jména, jinak listuj snímky filmu (DGS výše;
      nejdřív rejstřík „Zoznam krstov A–Z“, bývá na začátku knihy).
   4. **1900–1940:** doklady od rodiny (rodné listy dětí uvádějí i prarodiče), náhrobky a evidence hrobů (Košice:
-     gisplan.kosice.sk; cintoriny.sk jen část obcí). Rusíni vedení po 1950 jako pravoslavní mají starší zápisy
+     gisplan.kosice.sk; virtualnycintorin.sk a cintoriny.sk jen část obcí – viz Hroby a hřbitovy níže). Rusíni vedení po 1950 jako pravoslavní mají starší zápisy
      v řeckokatolických knihách.
 - **Snímek do projektu (Playwright):** nástroje dostanou od FamilySearch 403, snímek vydá jen přihlášený prohlížeč.
   Uživatel se jednou přihlásí v okně Playwrightu (přihlášení zůstane). ARK snímku je v adrese prohlížeče
@@ -600,6 +601,18 @@ domovskou obec, náboženství, národnost, povolání. Je to most mezi matrikam
   cenný pramen hlavně pro 20. století, kde matriky ještě nejsou přístupné.
 - Evidence hrobových míst: správa hřbitova (kdo je v hrobě uložen, kdo platí nájem – často žijící potomek);
   řada měst má online vyhledávání hrobů. Mezinárodně BillionGraves a Find a Grave.
+- **Slovensko – Virtuálne cintoríny** (virtualnycintorin.sk, přes milion zemřelých, jen
+  obce, které se zapojily). Uvádí **jen datum úmrtí** a věk, datum narození ne – rok narození z věku je odhad ±1.
+  Přesto je to dobré vodítko: k ženám přidává rodné příjmení („rod. Kováčová“) a ukáže, kdo leží ve stejném hrobě
+  (manželé, rodiče, děti). Stránky jdou číst přímo (curl/WebFetch, bez přihlášení):
+  - Zemřelí podle jména: `https://www.virtualnycintorin.sk/hladajz?s=<jméno>` (`&r=1` hledá i podle rodného
+    příjmení). Příjmení musí být **celé**, diakritika nevadí, místo křestního jména stačí iniciála („J Novak“).
+    Výsledkem je seznam hřbitovů s počtem nálezů; odkaz `/zosnuli/<id hřbitova>?s=…` vypíše číslo hrobu, jméno,
+    datum úmrtí a věk.
+  - Detail hrobu `/hrob/<id>` vypíše všechny pohřbené v hrobě a jeho místo na mapě hřbitova; hřbitovy v obci najde
+    `/hladaj?s=<obec nebo PSČ>`.
+  - Většina zápisů je z 20. a 21. století. Datum úmrtí veď v rodokmenu jako „podle Virtuálne cintoríny“, dokud ho
+    nepotvrdí matrika nebo úmrtní list.
 
 ## Noviny a ročenky – `tools/anno.py`, `tools/anno_snap.py`, `tools/kramerius.py`
 **Kdy se vyplatí:** státní a vrchnostenští úředníci, soudci, učitelé, faráři, důstojníci, vojenští lékaři, notáři,
