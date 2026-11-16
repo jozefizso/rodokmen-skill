@@ -6,6 +6,23 @@ dá v repozitáři **Watch → Custom → Releases**.
 
 Projekt založený starší verzí Claude sám nabídne aktualizovat (pozná to podle souboru `VERZE`).
 
+## 0.11.6 – 17. 11. 2026
+
+Změny forku přeskládané na nejnovější upstream (0.10.2 od sarsonj). Vše z forku zůstává a přibývá vše z upstreamu 0.10.2.
+
+**Opravy**
+- Z upstreamu 0.10.2: založení a aktualizace projektu nezapíšou mimo projekt, když je `.claude/` nebo `.skill_verze`
+  symbolický odkaz jinam (#193); `kontrola.py` upozorní na hypotézu (`HYPOTEZY`) zapsanou jinak než `dict(…)`;
+  brzda nezastaví celý Kramerius kvůli HTTP 403 u neveřejného díla.
+- Totéž platí i pro části z forku: složka `.claude/agents/` (čtenář) a `AGENTS.md` se přes odkaz mimo projekt nezapíšou.
+- Brzda dál dodržuje Retry-After a hlavičky RateLimit (z forku) a zároveň rozezná neveřejné dílo Krameria.
+- Web chce Node 22.19.0 nebo novější (kvůli zamčeným verzím v `package-lock.json`) – `npm run data` teď starší Node
+  hned srozumitelně ohlásí a stejnou verzi uvádí i `package.json`.
+
+**Návody**
+- Z upstreamu 0.10.2: záporný výsledek pomocníka („není tam“) Claude přijme jen s dokladem – první a poslední jméno
+  a data z každého snímku – a v deníku rozliší úsek prošlý s dokladem a jen orientačně.
+
 ## 0.11.5 – 15. 11. 2026
 
 **Návody**

@@ -441,7 +441,8 @@ def main():
                 zapis(p, data.replace(b"\r\n", b"\n"))
     for d in ("vyrezy", "zdroje", "dokumenty", "pracovni"):
         os.makedirs(os.path.join(dst, d), exist_ok=True)
-    os.makedirs(os.path.join(dst, ".claude", "agents"), exist_ok=True)
+    if not mimo(dst, os.path.join(dst, ".claude", "x")) and not kolize(dst, os.path.join(dst, ".claude", "agents", "x")):
+        os.makedirs(os.path.join(dst, ".claude", "agents"), exist_ok=True)   # ne přes odkaz .claude mimo projekt
     for name in ("CLAUDE.md", ".gitignore", ".gitattributes", "poznamky_pro_skill.md", os.path.join(".claude", "launch.json")):
         out = os.path.join(dst, name)
         if not os.path.lexists(out) and not mimo(dst, out) and not kolize(dst, out):   # ne přes odkaz mimo projekt
@@ -450,10 +451,11 @@ def main():
     # Claude Code čte CLAUDE.md, Cursor AGENTS.md. Když v projektu CLAUDE.md už je (třeba s pravidly pro Windows),
     # převezme se on, ne šablona znovu. Šablona template/AGENTS.md je tentýž text pro člověka, který se dívá do šablony.
     agents = os.path.join(dst, "AGENTS.md")
-    if not os.path.lexists(agents):
-        copy(os.path.join(dst, "CLAUDE.md"), agents)
+    claude_md = os.path.join(dst, "CLAUDE.md")
+    if (not os.path.lexists(agents) and os.path.isfile(claude_md) and not os.path.islink(claude_md)
+            and not mimo(dst, agents) and not kolize(dst, agents)):   # ne z cizího souboru ani přes odkaz ven
+        copy(claude_md, agents)
     nastaveni(dst, True if "--hlidac" in sys.argv else False if "--bez-hlidace" in sys.argv else None)
-
     if not kolize(dst, os.path.join(dst, ".skill_verze")):   # SKILL.md podle něj nabídne aktualizaci; odkaz nahradí
         zapis(os.path.join(dst, ".skill_verze"), cti(os.path.join(SKILL, "VERZE")))
     print("Projekt připraven:", dst)
